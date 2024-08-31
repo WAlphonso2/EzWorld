@@ -1,2 +1,2 @@
 # EzWorld
-OSU AI Capstone creating a unity world from a text prompt
+OSU AI Capstone creating a unity world from a text prompt 
