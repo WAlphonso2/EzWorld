@@ -5,6 +5,7 @@ public class TerrainGenerator : MonoBehaviour
     public int length = 128;
     public int width = 128;
     public int height = 30;
+    public float perlinNoiseScale = 5;
 
     private GameObject terrain;
 
@@ -52,7 +53,7 @@ public class TerrainGenerator : MonoBehaviour
         float xPos = (float)x / width;
         float zPos = (float)z / length;
 
-        float perlinNoiseHeight = Mathf.PerlinNoise(xPos, zPos);
+        float perlinNoiseHeight = Mathf.PerlinNoise(xPos * perlinNoiseScale, zPos * perlinNoiseScale);
         return Mathf.Clamp(perlinNoiseHeight, 0, 1);
     }
 
