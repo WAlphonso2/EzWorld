@@ -342,6 +342,10 @@ MonoBehaviour:
   height: 30
   perlinNoiseScale: 5
   terrainMaterial: 0
+  continuallyRegenerate: 0
+  regenerate: 0
+  smoothPerlinNoiseRegeneration: 0
+  smootherPerlinNoiseSpeed: 35
 --- !u!4 &1760522460
 Transform:
   m_ObjectHideFlags: 0

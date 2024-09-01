@@ -5,6 +5,7 @@ public class TerrainGenerator : MonoBehaviour
 {
     private static IDictionary<TerrainMaterial, Material> materialDictionary;
 
+    [Header("Standard")]
     public int length = 128;
     public int width = 128;
     public int height = 30;
@@ -13,7 +14,13 @@ public class TerrainGenerator : MonoBehaviour
     public TerrainMaterial terrainMaterial = TerrainMaterial.Sand;
     private TerrainMaterial activeTerrainMaterial;
 
+    [Header("Regeneration")]
+    public bool continuallyRegenerate = false;
     public bool regenerate = false;
+
+    [Header("Smooth Perlin Noise")]
+    public bool smoothPerlinNoiseRegeneration = false;
+    public float smootherPerlinNoiseSpeed = 35;
 
     private float perlinNoiseXOffset = 0;
     private float perlinNoiseYOffset = 0;
@@ -118,8 +125,18 @@ public class TerrainGenerator : MonoBehaviour
     void UpdatePerlinNoiseSeed()
     {
         // acts as random seed for perlin noise as it moves around the perlin noise image
-        perlinNoiseXOffset = Random.Range(-100000, 100000);
-        perlinNoiseYOffset = Random.Range(-100000, 100000);
+
+        if (smoothPerlinNoiseRegeneration)
+        {
+            float dp = smootherPerlinNoiseSpeed * Time.deltaTime / 100f;
+            perlinNoiseXOffset += dp;
+            perlinNoiseYOffset += dp;
+        }
+        else
+        {
+            perlinNoiseXOffset = Random.Range(-100000, 100000);
+            perlinNoiseYOffset = Random.Range(-100000, 100000);
+        }
     }
 
     void Update()
@@ -127,7 +144,7 @@ public class TerrainGenerator : MonoBehaviour
         if (regenerate)
         {
             UpdateTerrain();
-            regenerate = false;
+            regenerate = continuallyRegenerate;
         }
     }
 }
