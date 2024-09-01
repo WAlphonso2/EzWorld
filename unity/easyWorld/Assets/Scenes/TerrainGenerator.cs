@@ -1,17 +1,35 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TerrainGenerator : MonoBehaviour
 {
+    private static IDictionary<TerrainMaterial, Material> materialDictionary;
+
     public int length = 128;
     public int width = 128;
     public int height = 30;
     public float perlinNoiseScale = 5;
 
+    public TerrainMaterial terrainMaterial = TerrainMaterial.Sand;
+
     private GameObject terrain;
 
     void Start()
     {
+        LoadMaterials();
+
         CreateNewTerrainObject();
+    }
+
+    void LoadMaterials()
+    {
+        materialDictionary = new Dictionary<TerrainMaterial, Material>()
+        {
+            { TerrainMaterial.Sand, Resources.Load<Material>("Sand") },
+            { TerrainMaterial.Dirt, Resources.Load<Material>("Dirt") },
+            { TerrainMaterial.Snow, Resources.Load<Material>("Snow") },
+            { TerrainMaterial.Grass, Resources.Load<Material>("Grass") }
+        };
     }
 
     void CreateNewTerrainObject()
@@ -20,6 +38,8 @@ public class TerrainGenerator : MonoBehaviour
         UpdateTerrainData(terrainData);
 
         terrain = Terrain.CreateTerrainGameObject(terrainData);
+
+        LoadSelectedMaterial();
     }
 
     void UpdateTerrainData(TerrainData terrainData)
@@ -27,6 +47,22 @@ public class TerrainGenerator : MonoBehaviour
         terrainData.heightmapResolution = width + 1;
         terrainData.size = new Vector3(width, height, length);
         terrainData.SetHeights(0, 0, GenerateHeightMap());
+    }
+
+    void LoadSelectedMaterial()
+    {
+        Terrain t = terrain.GetComponent<Terrain>();
+        try
+        {
+            t.materialTemplate = materialDictionary[terrainMaterial];
+        }
+        catch
+        {
+            t.materialTemplate = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = Color.black
+            };
+        }
     }
 
     float[,] GenerateHeightMap()
@@ -61,4 +97,12 @@ public class TerrainGenerator : MonoBehaviour
     {
 
     }
+}
+
+public enum TerrainMaterial
+{
+    Grass,
+    Dirt,
+    Snow,
+    Sand
 }
