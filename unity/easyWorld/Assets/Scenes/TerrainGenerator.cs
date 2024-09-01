@@ -11,8 +11,16 @@ public class TerrainGenerator : MonoBehaviour
     public float perlinNoiseScale = 5;
 
     public TerrainMaterial terrainMaterial = TerrainMaterial.Sand;
+    private TerrainMaterial activeTerrainMaterial;
 
-    private GameObject terrain;
+    public bool regenerate = false;
+
+    private float perlinNoiseXOffset = 0;
+    private float perlinNoiseYOffset = 0;
+
+    private GameObject terrainObject;
+    private Terrain terrain;
+    private TerrainData terrainData;
 
     void Start()
     {
@@ -34,15 +42,18 @@ public class TerrainGenerator : MonoBehaviour
 
     void CreateNewTerrainObject()
     {
-        TerrainData terrainData = new TerrainData();
-        UpdateTerrainData(terrainData);
+        UpdatePerlinNoiseSeed();
 
-        terrain = Terrain.CreateTerrainGameObject(terrainData);
+        terrainData = new TerrainData();
+        UpdateTerrainData();
+
+        terrainObject = Terrain.CreateTerrainGameObject(terrainData);
+        terrain = terrainObject.GetComponent<Terrain>();
 
         LoadSelectedMaterial();
     }
 
-    void UpdateTerrainData(TerrainData terrainData)
+    void UpdateTerrainData()
     {
         terrainData.heightmapResolution = width + 1;
         terrainData.size = new Vector3(width, height, length);
@@ -51,17 +62,18 @@ public class TerrainGenerator : MonoBehaviour
 
     void LoadSelectedMaterial()
     {
-        Terrain t = terrain.GetComponent<Terrain>();
         try
         {
-            t.materialTemplate = materialDictionary[terrainMaterial];
+            terrain.materialTemplate = materialDictionary[terrainMaterial];
+            activeTerrainMaterial = terrainMaterial;
         }
         catch
         {
-            t.materialTemplate = new Material(Shader.Find("Unlit/Color"))
+            terrain.materialTemplate = new Material(Shader.Find("Unlit/Color"))
             {
                 color = Color.black
             };
+            activeTerrainMaterial = TerrainMaterial.None;
         }
     }
 
@@ -89,13 +101,34 @@ public class TerrainGenerator : MonoBehaviour
         float xPos = (float)x / width;
         float zPos = (float)z / length;
 
-        float perlinNoiseHeight = Mathf.PerlinNoise(xPos * perlinNoiseScale, zPos * perlinNoiseScale);
+        float perlinNoiseHeight = Mathf.PerlinNoise(xPos * perlinNoiseScale + perlinNoiseXOffset, zPos * perlinNoiseScale + perlinNoiseYOffset);
         return Mathf.Clamp(perlinNoiseHeight, 0, 1);
+    }
+
+    void UpdateTerrain()
+    {
+        UpdatePerlinNoiseSeed();
+
+        if (terrainMaterial != activeTerrainMaterial)
+            LoadSelectedMaterial();
+
+        UpdateTerrainData();
+    }
+
+    void UpdatePerlinNoiseSeed()
+    {
+        // acts as random seed for perlin noise as it moves around the perlin noise image
+        perlinNoiseXOffset = Random.Range(-100000, 100000);
+        perlinNoiseYOffset = Random.Range(-100000, 100000);
     }
 
     void Update()
     {
-
+        if (regenerate)
+        {
+            UpdateTerrain();
+            regenerate = false;
+        }
     }
 }
 
@@ -104,5 +137,6 @@ public enum TerrainMaterial
     Grass,
     Dirt,
     Snow,
-    Sand
+    Sand,
+    None
 }
