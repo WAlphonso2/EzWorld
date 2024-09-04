@@ -187,12 +187,3 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 }
-
-public enum TerrainMaterial
-{
-    Grass,
-    Dirt,
-    Snow,
-    Sand,
-    None
-}

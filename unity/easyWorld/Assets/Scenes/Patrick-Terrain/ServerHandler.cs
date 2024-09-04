@@ -12,6 +12,7 @@ public class ServerHandler : MonoBehaviour
 
     private Process pythonAIServer;
 
+    public string BaseDirectory { get; private set; }
     public bool IsServerActive => pythonAIServer != null && !pythonAIServer.HasExited;
 
     void Start()
@@ -27,8 +28,8 @@ public class ServerHandler : MonoBehaviour
             return;
         }
 
-        string mainProjectDirectory = Path.Combine(Application.dataPath, "..\\..\\..");
-        string serverPath = Path.Combine(mainProjectDirectory, SERVER_DIRECTORY, SERVER_NAME);
+        BaseDirectory = Path.Combine(Application.dataPath, "..\\..\\..");
+        string serverPath = Path.Combine(BaseDirectory, SERVER_DIRECTORY, SERVER_NAME);
 
         if (!File.Exists(serverPath))
         {
