@@ -1,3 +1,4 @@
+using Assets.Scenes.Patrick_Terrain;
 using System;
 using System.Collections;
 using System.Text;
@@ -19,7 +20,7 @@ public class AICommunicatorAlt : MonoBehaviour
     public TMP_InputField inputField;
 
     [Header("Generation")]
-    public TerrainGenerator terrainGenerator;
+    public WorldGenerator worldGenerator;
 
     public void OnGenerateTerrainButton()
     {
@@ -59,24 +60,26 @@ public class AICommunicatorAlt : MonoBehaviour
 
         yield return request.SendWebRequest();
 
+        HandleWebRequestResult(request);
+    }
+
+    void HandleWebRequestResult(UnityWebRequest request)
+    {
         if (request.result == UnityWebRequest.Result.Success)
         {
-            string requestText = request.downloadHandler.text;
-
-            GeminiResponse response = JsonUtility.FromJson<GeminiResponse>(requestText);
+            GeminiResponse response = JsonUtility.FromJson<GeminiResponse>(request.downloadHandler.text);
 
             string jsonString = GetOutputJson(response.output);
 
             if (jsonString == null)
             {
                 Debug.Log("Error parsing json output from AI model, aborting generation");
-                yield break;
+                return;
             }
 
             WorldInfo worldInfo = JsonUtility.FromJson<WorldInfo>(jsonString);
-            Debug.Log(worldInfo);
 
-            terrainGenerator.CreateNewTerrainObject();
+            worldGenerator.GenerateNewWorld(worldInfo);
         }
         else
         {
