@@ -1055,6 +1055,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SERVER_URL: http://localhost:5000/parse_description
+  SERVER_TIMEOUT_SECONDS: 10
   serverHandler: {fileID: 2088404244}
   resetTextOnButtonClick: 0
   inputField: {fileID: 1956810249}

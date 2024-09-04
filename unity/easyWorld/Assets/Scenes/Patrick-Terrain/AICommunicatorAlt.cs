@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Text;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -8,6 +10,7 @@ public class AICommunicatorAlt : MonoBehaviour
 {
     [Header("Server")]
     public string SERVER_URL = "http://localhost:5000/parse_description";
+    public int SERVER_TIMEOUT_SECONDS = 10;
 
     public ServerHandler serverHandler;
 
@@ -46,7 +49,8 @@ public class AICommunicatorAlt : MonoBehaviour
         using UnityWebRequest request = new UnityWebRequest(SERVER_URL, "POST")
         {
             uploadHandler = new UploadHandlerRaw(bodyRaw),
-            downloadHandler = new DownloadHandlerBuffer()
+            downloadHandler = new DownloadHandlerBuffer(),
+            timeout = SERVER_TIMEOUT_SECONDS
         };
 
         request.SetRequestHeader("Content-Type", "application/json");
@@ -57,6 +61,21 @@ public class AICommunicatorAlt : MonoBehaviour
 
         if (request.result == UnityWebRequest.Result.Success)
         {
+            string requestText = request.downloadHandler.text;
+
+            GeminiResponse response = JsonUtility.FromJson<GeminiResponse>(requestText);
+
+            string jsonString = GetOutputJson(response.output);
+
+            if (jsonString == null)
+            {
+                Debug.Log("Error parsing json output from AI model, aborting generation");
+                yield break;
+            }
+
+            WorldInfo worldInfo = JsonUtility.FromJson<WorldInfo>(jsonString);
+            Debug.Log(worldInfo);
+
             terrainGenerator.CreateNewTerrainObject();
         }
         else
@@ -64,4 +83,19 @@ public class AICommunicatorAlt : MonoBehaviour
             Debug.Log("Failed to get AI Output");
         }
     }
+
+    string GetOutputJson(string text)
+    {
+        string regexPattern = @"\{[^{}]*\}";
+        Match match = Regex.Match(text, regexPattern);
+
+        return match.Success ? match.Groups[0].Value : null;
+    }
+}
+
+[Serializable]
+internal struct GeminiResponse
+{
+    public string input;
+    public string output;
 }
