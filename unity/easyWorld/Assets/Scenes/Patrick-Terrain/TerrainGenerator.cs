@@ -49,8 +49,6 @@ public class TerrainGenerator : MonoBehaviour
     void Start()
     {
         LoadMaterials();
-
-        CreateNewTerrainObject();
     }
 
     void LoadMaterials()
@@ -64,7 +62,7 @@ public class TerrainGenerator : MonoBehaviour
         };
     }
 
-    void CreateNewTerrainObject()
+    public void CreateNewTerrainObject()
     {
         CheckPerlinNoiseWeights();
         UpdatePerlinNoiseSeed();
