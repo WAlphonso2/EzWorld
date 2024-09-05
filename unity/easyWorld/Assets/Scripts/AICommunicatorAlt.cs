@@ -1,4 +1,5 @@
 using Assets.Scenes.Patrick_Terrain;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Text;
@@ -29,6 +30,8 @@ public class AICommunicatorAlt : MonoBehaviour
         if (!string.IsNullOrEmpty(description))
         {
             StartCoroutine(GetAIOutput(description));
+
+            StartCoroutine(worldGenerator.ClearCurrentWorld());
         }
         else
         {
@@ -67,7 +70,7 @@ public class AICommunicatorAlt : MonoBehaviour
     {
         if (request.result == UnityWebRequest.Result.Success)
         {
-            GeminiResponse response = JsonUtility.FromJson<GeminiResponse>(request.downloadHandler.text);
+            GeminiResponse response = JsonConvert.DeserializeObject<GeminiResponse>(request.downloadHandler.text);
 
             string jsonString = GetOutputJson(response.output);
 
@@ -77,7 +80,7 @@ public class AICommunicatorAlt : MonoBehaviour
                 return;
             }
 
-            WorldInfo worldInfo = JsonUtility.FromJson<WorldInfo>(jsonString);
+            WorldInfo worldInfo = JsonConvert.DeserializeObject<WorldInfo>(jsonString);
 
             worldGenerator.GenerateNewWorld(worldInfo);
         }
