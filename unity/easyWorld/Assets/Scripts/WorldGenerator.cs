@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scenes.Patrick_Terrain
@@ -7,14 +8,15 @@ namespace Assets.Scenes.Patrick_Terrain
     {
         public List<Generator> generators;
 
+        public IEnumerator ClearCurrentWorld()
+        {
+            generators.ForEach(g => g.Clear());
+            yield return null;
+        }
+
         public void GenerateNewWorld(WorldInfo worldInfo)
         {
-            Debug.Log(worldInfo);
-
-            // tell all generators to clear up anything from previous world
-            generators.ForEach(g => g.Clear());
-
-            // tell all generators to generate their worlds which will run in parallel
+            // tell all generators to generate their parts of the world which will run in parallel
             foreach (Generator g in generators)
             {
                 StartCoroutine(g.Generate(worldInfo));

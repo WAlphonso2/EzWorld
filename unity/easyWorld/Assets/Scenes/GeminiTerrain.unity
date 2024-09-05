@@ -420,13 +420,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 262661124}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: 0.3202453, y: -0, z: -0, w: 0.9473347}
+  m_LocalPosition: {x: 0, y: 70, z: -100}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 37.356, y: 0, z: 0}
 --- !u!1 &321033733
 GameObject:
   m_ObjectHideFlags: 0
@@ -1055,7 +1055,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SERVER_URL: http://localhost:5000/parse_description
-  SERVER_TIMEOUT_SECONDS: 10
+  SERVER_TIMEOUT_SECONDS: 60
   serverHandler: {fileID: 2088404244}
   resetTextOnButtonClick: 0
   inputField: {fileID: 1956810249}
@@ -1135,6 +1135,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a445b4c6ef05d114887de801abcbdaad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  size: 128
+  height: 30
+  macroPerlinNoiseWeight: 0.7
+  macroPerlinNoiseScale: 5
+  midPerlinNoiseWeight: 0.25
+  midPerlinNoiseScale: 5
+  microPerlinNoiseWeight: 0.05
+  microPerlinNoiseScale: 5
 --- !u!4 &1532587139
 Transform:
   m_ObjectHideFlags: 0
@@ -1504,7 +1512,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d8ef27c111711429111e6553ea9601, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allowServerStart: 1
+  allowServerStart: 0
   EXECUTABLE: python
   SERVER_DIRECTORY: ai_server
   SERVER_NAME: server.py
