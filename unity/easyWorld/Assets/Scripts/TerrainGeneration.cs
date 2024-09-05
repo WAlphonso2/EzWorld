@@ -49,6 +49,8 @@ public class TerrainGeneration : MonoBehaviour
     void Start()
     {
         LoadMaterials();
+
+        CreateNewTerrainObject();
     }
 
     void LoadMaterials()
