@@ -7,7 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class AICommunicatorAlt : MonoBehaviour
+public class AICommunicator : MonoBehaviour
 {
     [Header("Server")]
     public string SERVER_URL = "http://localhost:5000/parse_description";
