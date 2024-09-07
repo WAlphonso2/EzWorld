@@ -28,7 +28,7 @@ public class ServerHandler : MonoBehaviour
             return;
         }
 
-        BaseDirectory = Path.Combine(Application.dataPath, "..\\..\\..");
+        BaseDirectory = Directory.GetParent(Directory.GetParent(Directory.GetParent(Application.dataPath).FullName).FullName).FullName;
         string serverPath = Path.Combine(BaseDirectory, SERVER_DIRECTORY, SERVER_NAME);
 
         if (!File.Exists(serverPath))
