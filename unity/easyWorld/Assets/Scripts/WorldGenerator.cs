@@ -2,25 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scenes.Patrick_Terrain
+public class WorldGenerator : MonoBehaviour
 {
-    public class WorldGenerator : MonoBehaviour
+    public List<Generator> generators;
+
+    public IEnumerator ClearCurrentWorld()
     {
-        public List<Generator> generators;
+        generators.ForEach(g => g.Clear());
+        yield return null;
+    }
 
-        public IEnumerator ClearCurrentWorld()
+    public void GenerateNewWorld(WorldInfo worldInfo)
+    {
+        // tell all generators to generate their parts of the world which will run in parallel
+        foreach (Generator g in generators)
         {
-            generators.ForEach(g => g.Clear());
-            yield return null;
-        }
-
-        public void GenerateNewWorld(WorldInfo worldInfo)
-        {
-            // tell all generators to generate their parts of the world which will run in parallel
-            foreach (Generator g in generators)
-            {
-                StartCoroutine(g.Generate(worldInfo));
-            }
+            StartCoroutine(g.Generate(worldInfo));
         }
     }
 }
