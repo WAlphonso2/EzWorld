@@ -1,4 +1,0 @@
-repository "easyWorld@matiman1415@cloud"
-  path "/"
-    br "/main"
-    co "/main"
