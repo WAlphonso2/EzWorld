@@ -37,6 +37,13 @@ namespace CurvedPathGenerator
 
         public Texture2D LineTexture;
 
+        public int NodeCount = 6; 
+        public float PathLength = 1024f; 
+        public float AngleVarianceX = 30f; // Random angle variance for X axis
+        public float AngleVarianceY = 30f; // Random angle variance for Y axis
+        public float NoiseScale = 0.1f; 
+        public float HeightNoiseScale = 0.05f;
+
         public List<Vector3> PathList = new List<Vector3>();
 
         public List<float> PathLengths = new List<float>();
@@ -54,42 +61,79 @@ namespace CurvedPathGenerator
 
         public List<Vector3> AngleList_World = new List<Vector3>();
 
+        private Terrain terrain;
 
-        private void Awake()
+        // Generates nodes with random heights and angles using Perlin noise
+        public void GenerateRandomNodesAndAngles()
         {
-            UpdatePath();
+            NodeList.Clear();
+            AngleList.Clear();
+
+            Vector3 lastNode = Vector3.zero;
+
+            for (int i = 0; i < NodeCount; i++)
+            {
+                // Generate a random position using Perlin noise for smooth transitions
+                float randomX = Mathf.PerlinNoise(i * NoiseScale, 0f) * PathLength;
+                float randomZ = Mathf.PerlinNoise(0f, i * NoiseScale) * PathLength;
+
+                // Sample the terrain's height at the random X, Z position
+                float terrainHeight = SampleTerrainHeight(randomX, randomZ);
+
+                Vector3 newNode = new Vector3(randomX, terrainHeight, randomZ);
+                NodeList.Add(newNode);
+
+                // Randomize the angles for both X and Y axes
+                float randomAngleX = Random.Range(-AngleVarianceX, AngleVarianceX);
+                float randomAngleY = Random.Range(-AngleVarianceY, AngleVarianceY);
+                AngleList.Add(new Vector3(randomAngleX, randomAngleY, 0));
+
+                lastNode = newNode;
+            }
+
+            NodeList_World = NodeList; 
+            AngleList_World = AngleList; 
+        }
+        private float SampleTerrainHeight(float x, float z)
+        {
+            if (terrain == null)
+                return 0f;
+
+            Vector3 terrainPos = terrain.transform.position;
+            float normalizedX = (x - terrainPos.x) / terrain.terrainData.size.x;
+            float normalizedZ = (z - terrainPos.z) / terrain.terrainData.size.z;
+
+            return terrain.SampleHeight(new Vector3(x, 0, z)) + terrainPos.y;
         }
 
         public void UpdatePath()
         {
+            if (PathDensity < 2)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("Path Density is too small. (must >= 2)");
+                UnityEditor.EditorApplication.isPlaying = false;
+#elif UNITY_WEBPLAYER
+                Application.OpenURL("about:blank");
+#else
+                Application.Quit();
+#endif
+                return; // Exit if path density is too low
+            }
+
             try
             {
                 PathList = new List<Vector3>();
                 PathLengths = new List<float>();
 
-
-                if ( PathDensity < 2 )
+                for (int i = 0; i < NodeList_World.Count; i++)
                 {
-#if UNITY_EDITOR
-                    Debug.LogError("Path Density is too small. (must >= 2)");
-                    UnityEditor.EditorApplication.isPlaying = false;
-#elif UNITY_WEBPLAYER
-                    Application.OpenURL("about:blank");
-#else
-                    Application.Quit();
-#endif
-                }
-
-
-                for ( int i = 0 ; i < NodeList_World.Count ; i++ )
-                {
-
                     Vector3 startPoint = NodeList_World[i];
                     Vector3 middlePoint = new Vector3();
                     Vector3 endPoint = new Vector3();
-                    if ( i == NodeList_World.Count - 1 )
+                    if (i == NodeList_World.Count - 1)
                     {
-                        if ( IsClosed )
+                        if (IsClosed)
                         {
                             middlePoint = AngleList_World[i];
                             endPoint = NodeList_World[0];
@@ -105,42 +149,33 @@ namespace CurvedPathGenerator
                         endPoint = NodeList_World[i + 1];
                     }
 
-
-                    for ( int j = 0 ; j < PathDensity ; j++ )
+                    // Generate the Bezier curve with path density
+                    for (int j = 0; j < PathDensity; j++)
                     {
                         float t = (float)j / PathDensity;
-
-                        Vector3 curve = ( 1f - t ) * ( 1f - t ) * startPoint +
-                                       2 * ( 1f - t ) * t * middlePoint +
-                                       t * t * endPoint;
+                        Vector3 curve = (1f - t) * (1f - t) * startPoint +
+                                        2 * (1f - t) * t * middlePoint +
+                                        t * t * endPoint;
                         PathList.Add(curve);
-                        if ( PathList.Count == 2 )
+
+                        if (PathList.Count > 1)
                         {
-                            float length = ( PathList[0] - curve ).magnitude;
-                            PathLengths.Add(length);
-                        }
-                        else if ( PathList.Count > 2 )
-                        {
-                            float length = ( PathList[PathList.Count - 2] - curve ).magnitude;
-                            PathLengths.Add(PathLengths[PathLengths.Count - 1] + length);
+                            float length = (PathList[PathList.Count - 2] - curve).magnitude;
+                            PathLengths.Add(PathLengths.Count == 0 ? length : PathLengths[PathLengths.Count - 1] + length);
                         }
                     }
                 }
 
-
-                if ( IsClosed )
+                if (IsClosed)
                     PathList.Add(NodeList_World[0]);
                 else
                     PathList.Add(NodeList_World[NodeList_World.Count - 1]);
 
                 CreateMesh(PathList);
-
-                float l = ( PathList[PathList.Count - 2] - PathList[PathList.Count - 1] ).magnitude;
-                PathLengths.Add(PathLengths[PathLengths.Count - 1] + l);
             }
-            catch ( System.Exception e )
+            catch (System.Exception e)
             {
-                e.ToString();
+                Debug.LogError($"Path generation failed: {e}");
             }
         }
 

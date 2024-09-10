@@ -15,6 +15,7 @@ public class WorldBuilder : MonoBehaviour
     private GrassGenerator grassGenerator;
     private WaterGenerator waterGenerator;
     private PathGenerator pathGenerator;
+    // private WeatherGenerator weatherGenerator;
 
     public Terrain terrain;  // Reference to the Terrain GameObject in the Inspector
     public Camera initialCamera;
@@ -41,7 +42,8 @@ public class WorldBuilder : MonoBehaviour
         grassGenerator = terrain.GetComponent<GrassGenerator>();
         waterGenerator = terrain.GetComponent<WaterGenerator>();
         pathGenerator = terrain.GetComponent<PathGenerator>();
-        
+        // weatherGenerator = terrain.GetComponent<WeatherGenerator>();
+
         if (heightsGenerator == null || texturesGenerator == null || treeGenerator == null || grassGenerator == null)
         {
             Debug.LogError("One or more generators are not found on the Terrain GameObject!");
@@ -83,8 +85,11 @@ public class WorldBuilder : MonoBehaviour
                 // Start generating the terrain using the generators
                 GenerateTerrain();
 
-                // Create the random path
-                GenerateRandomPath();
+                // Apply weather settings
+                // ApplyWeatherSettings(response.weatherGenerator);
+                
+                // Generate the path after terrain is fully generated
+                StartCoroutine(GeneratePathAfterTerrain());
 
                 // Switch to gameplay mode after generation
                 StartCoroutine(SwitchToGamePlayMode());
@@ -128,7 +133,7 @@ public class WorldBuilder : MonoBehaviour
                 {
                     Texture = texture,
                     Tilesize = new Vector2(textureData.tileSizeX, textureData.tileSizeY),
-                    Type = 0, // Assuming height-based texture by default
+                    Type = 0, 
                     HeightCurve = GetHeightCurveFromType(textureData.heightCurve)
                 };
                 texturesGenerator.textures.Add(newTexture);
@@ -236,6 +241,34 @@ public class WorldBuilder : MonoBehaviour
     }
 
 
+    // private void ApplyWeatherSettings(WeatherGeneratorData weatherData)
+    // {
+    //     // Apply weather settings based on the weather type
+    //     if (weatherData != null)
+    //     {
+    //         switch (weatherData.weatherType.ToLower())
+    //         {
+    //             case "sunny":
+    //                 weatherGenerator.GenerateSunnyWeather();
+    //                 break;
+    //             case "rainy":
+    //                 weatherGenerator.GenerateRainyWeather();
+    //                 break;
+    //             case "windy":
+    //                 weatherGenerator.GenerateWindyWeather();
+    //                 break;
+    //             case "stormy":
+    //                 weatherGenerator.GenerateStormyWeather();
+    //                 break;
+    //             default:
+    //                 Debug.LogWarning("Unknown weather type, defaulting to sunny.");
+    //                 weatherGenerator.GenerateSunnyWeather();
+    //                 break;
+    //         }
+    //     }
+    // }
+
+
     // Generate terrain using the attached generators
     private void GenerateTerrain()
     {
@@ -247,31 +280,37 @@ public class WorldBuilder : MonoBehaviour
 
     }
 
+    // Generate the path following the terrain
     private void GenerateRandomPath()
     {
-        // Set up the path properties
-        pathGenerator.PathDensity = 10;  // Adjust path density
-        pathGenerator.LineMehsWidth = 2.0f;  // Adjust path width
-        pathGenerator.LineTiling = 20f;  // Adjust texture tiling
-        pathGenerator.IsLivePath = true;
-        pathGenerator.CreateMeshFlag = true;
-        pathGenerator.IsClosed = false;
-        pathGenerator.LineTexture = Resources.Load<Texture2D>("Textures/sand");  // Set the sand texture
+        // Ensure path sticks to the terrain by generating nodes and angles after terrain generation
+        pathGenerator.GenerateRandomNodesAndAngles();
 
-        // Generate random nodes for the path
-        pathGenerator.NodeList_World = GenerateRandomPathPoints();
-        pathGenerator.AngleList_World = GenerateRandomPathAngles(pathGenerator.NodeList_World);
+        // Optionally, set path-specific properties if needed
+        pathGenerator.PathDensity = 20;  // Adjust path density for smoother curves
+        pathGenerator.LineMehsWidth = 2.0f;  // Adjust path width
+        pathGenerator.LineTiling = 10f;  // Adjust texture tiling
+        pathGenerator.LineTexture = Resources.Load<Texture2D>("Textures/mud");  // Set the mud texture
 
         // Update the path after generation
         pathGenerator.UpdatePath();
     }
 
-    private List<Vector3> GenerateRandomPathPoints()
+    private IEnumerator GeneratePathAfterTerrain()
+    {
+        // Wait for a frame to ensure terrain is generated
+        yield return null;
+
+        // After terrain is fully generated, now generate the path
+        GenerateRandomPath();
+    }
+
+    private List<Vector3> GenerateRandomPathPoints(int nodeCount)
     {
         List<Vector3> points = new List<Vector3>();
 
         // Generate random path points within the terrain bounds
-        for (int i = 0; i < 5; i++)  // Example: create 5 random nodes
+        for (int i = 0; i < nodeCount; i++)
         {
             float x = Random.Range(0, terrain.terrainData.size.x);
             float z = Random.Range(0, terrain.terrainData.size.z);
@@ -287,7 +326,7 @@ public class WorldBuilder : MonoBehaviour
     {
         List<Vector3> angles = new List<Vector3>();
 
-        // Generate random angles for each node (for the curve between nodes)
+        // Generate random angles for each node
         for (int i = 0; i < nodeList.Count - 1; i++)
         {
             Vector3 midPoint = (nodeList[i] + nodeList[i + 1]) / 2;
