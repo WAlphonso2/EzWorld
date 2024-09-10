@@ -44,14 +44,15 @@ def parse_description():
     - randomize and autoUpdate should be true or false.
 
     TexturesGenerator:
-    - texture should be a list of textures (comma-separated) that can include any of the following: 
-    ["grass", "desert", "snow", "mud", "rock", "sand", "forestFloor", "mountainRock", "dirt", "deadGrass", "lava", "water"].
+    - texture should be a list of textures (comma-separated) that can include any of the following it should be only for the terrain:
+    - Water is not part of terrain TexturesGenerator
+    ["grass", "desert", "snow", "mud", "rock", "sand", "forestFloor", "mountainRock", "dirt", "deadGrass"].
     - The user may ask for multiple textures, so the model should include more than one texture if necessary. 
     For example, "desert, deadGrass" for a desert with patches of dead grass, or "snow, rock" for snowy mountains.
     - Each texture should have its own properties: 
         - `heightCurve`: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"]. These represent the curve type for how the texture is applied based on terrain height.
-        - `tileSizeX`: float, between 1 and 50 (determines how the texture is tiled on the X axis).
-        - `tileSizeY`: float, between 1 and 50 (determines how the texture is tiled on the Y axis).
+        - `tileSizeX`: float, between 5 and 50 (determines how the texture is tiled on the X axis).
+        - `tileSizeY`: float, between 5 and 50 (determines how the texture is tiled on the Y axis).
         Ensure each texture has unique values for these properties. 
 
 
@@ -82,6 +83,12 @@ def parse_description():
     - density should be between 0.1 and 10.
     - randomize and autoUpdate should be true or false.
     - treePrototypes should be an integer representing the number of tree prefabs, typically between 1 and 10.
+
+    WaterGenerator:
+    - waterType should be "river", "lake", "ocean", or "none".
+    - waterLevel represents the level of water height for lakes or oceans.
+    - river width range x and y, x should be between 500 and 2000, y should be between 500 and 2000 
+    - randomize and autoUpdate should be true or false.
 
     Make sure you return the result in JSON format like this:   
     {{
@@ -143,6 +150,14 @@ def parse_description():
             "density": int,
             "randomize": boolean,
             "grassTextures": integer
+        }},
+        "waterGenerator": {{
+            "waterType": string,
+            "waterLevel": float,
+            "riverWidthRangeX": float,  
+            "riverWidthRangeY": float, 
+            "randomize": boolean,
+            "autoUpdate": boolean
         }}
     }}
 
@@ -221,7 +236,13 @@ def parse_description():
                 "density": terrain_data.get("grassGenerator", {}).get("density", 20),
                 "randomize": terrain_data.get("grassGenerator", {}).get("randomize", False),
                 "grassTextures": terrain_data.get("grassGenerator", {}).get("grassTextures", 2)
-            }
+            },"waterGenerator": {
+                "waterType": terrain_data.get("waterGenerator", {}).get("waterType", "none"),
+                "waterLevel": terrain_data.get("waterGenerator", {}).get("waterLevel", 20),  
+                "randomize": terrain_data.get("waterGenerator", {}).get("randomize", True),
+                "riverWidthRange": terrain_data.get("waterGenerator", {}).get("riverWidthRange", (1024, 1024)),
+                "autoUpdate": terrain_data.get("waterGenerator", {}).get("autoUpdate", True)
+    }
         }
 
     except json.JSONDecodeError as e:

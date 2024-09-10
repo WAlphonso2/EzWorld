@@ -6,9 +6,11 @@ using UnityEngine;
 public class TerrainDataFromAI
 {
     public HeightsGeneratorData heightsGenerator;
-    public List<TexturesGeneratorData> texturesGenerator;  // Ensure this is a list
+    public List<TexturesGeneratorData> texturesGenerator;
     public TreeGeneratorData treeGenerator;
     public GrassGeneratorData grassGenerator;
+    public WaterGeneratorData waterGenerator;
+
 }
 
 [System.Serializable]
@@ -74,3 +76,14 @@ public class GrassGeneratorData
     public bool randomize;
     public int grassTextures;
 }
+
+[System.Serializable]
+public class WaterGeneratorData
+{
+    public string waterType;  
+    public float waterLevel;  
+    public Vector2 riverWidthRange;  
+    public bool randomize;
+    public bool autoUpdate;
+}
+
