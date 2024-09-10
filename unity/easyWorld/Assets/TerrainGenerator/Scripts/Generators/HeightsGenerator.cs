@@ -21,6 +21,9 @@ namespace Assets.Scripts.MapGenerator.Generators
         public bool Randomize;
         public bool AutoUpdate;
 
+        // New shallow depth field
+        public float ShallowDepth = 1f;
+
         private void OnValidate()
         {
             if (Width < 1)
