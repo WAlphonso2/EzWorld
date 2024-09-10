@@ -10,7 +10,7 @@ public class TerrainDataFromAI
     public TreeGeneratorData treeGenerator;
     public GrassGeneratorData grassGenerator;
     public WaterGeneratorData waterGenerator;
-
+    // public WeatherGeneratorData weatherGenerator;
 }
 
 [System.Serializable]
@@ -87,3 +87,8 @@ public class WaterGeneratorData
     public bool autoUpdate;
 }
 
+// [System.Serializable]
+// public class WeatherGeneratorData 
+// {
+//     public string weatherType;
+// }
