@@ -1,7 +1,7 @@
-using UnityEngine;
-using UnityEngine.Networking;
 using System.Collections;
 using System.Text;
+using UnityEngine;
+using UnityEngine.Networking;
 
 public class AICommunicator : MonoBehaviour
 {
