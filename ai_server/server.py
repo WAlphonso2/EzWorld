@@ -169,94 +169,14 @@ def parse_description():
     "{description}"
     """
 
+    # Call the Gemini API to generate the content
+    response = model.generate_content(prompt)
 
-    try:
-        # Call the Gemini API to generate the content
-        response = model.generate_content(prompt)
+    # Log the raw API response for debugging
+    # print("API Response:", response.text)
 
-        # Log the raw API response for debugging
-        print("API Response:", response.text)
-
-        # Clean the response by removing any triple backticks if present
-        clean_response = response.text.strip().strip('```json').strip('```')
-
-        return clean_response
-
-        # Convert the cleaned response to a JSON structure
-        terrain_data = json.loads(clean_response)
-
-        # Handle multiple textures in texturesGenerator
-        textures_data = []
-        for texture in terrain_data.get("texturesGenerator", []):
-            textures_data.append({
-                "texture": texture.get("texture", "None"),
-                "heightCurve": texture.get("heightCurve", "smooth"),
-                "tileSizeX": texture.get("tileSizeX", 10.0),
-                "tileSizeY": texture.get("tileSizeY", 10.0)
-            })
-
-        # Construct the final response
-        structured_response = {
-            "heightsGenerator": {
-                "width": terrain_data.get("heightsGenerator", {}).get("width", 1024),
-                "height": terrain_data.get("heightsGenerator", {}).get("height", 1024),
-                "depth": terrain_data.get("heightsGenerator", {}).get("depth", 100),
-                "octaves": terrain_data.get("heightsGenerator", {}).get("octaves", 4),
-                "scale": terrain_data.get("heightsGenerator", {}).get("scale", 100.0),
-                "lacunarity": terrain_data.get("heightsGenerator", {}).get("lacunarity", 2.0),
-                "persistence": terrain_data.get("heightsGenerator", {}).get("persistence", 0.5),
-                "heightCurve": terrain_data.get("heightsGenerator", {}).get("heightCurve", "linear"), 
-                "heightCurveOffset": terrain_data.get("heightsGenerator", {}).get("heightCurveOffset", 0.3),
-                "falloffDirection": terrain_data.get("heightsGenerator", {}).get("falloffDirection", 3),
-                "falloffRange": terrain_data.get("heightsGenerator", {}).get("falloffRange", 3),
-                "useFalloffMap": terrain_data.get("heightsGenerator", {}).get("useFalloffMap", True),
-                "randomize": terrain_data.get("heightsGenerator", {}).get("randomize", False),
-                "autoUpdate": terrain_data.get("heightsGenerator", {}).get("autoUpdate", True)
-            },
-            "texturesGenerator": textures_data,  # List of textures
-            "treeGenerator": {
-                "octaves": terrain_data.get("treeGenerator", {}).get("octaves", 3),
-                "scale": terrain_data.get("treeGenerator", {}).get("scale", 1.0),
-                "lacunarity": terrain_data.get("treeGenerator", {}).get("lacunarity", 2.0),
-                "persistence": terrain_data.get("treeGenerator", {}).get("persistence", 0.5),
-                "offset": terrain_data.get("treeGenerator", {}).get("offset", 0.2),
-                "minLevel": terrain_data.get("treeGenerator", {}).get("minLevel", 0.1),
-                "maxLevel": terrain_data.get("treeGenerator", {}).get("maxLevel", 0.9),
-                "maxSteepness": terrain_data.get("treeGenerator", {}).get("maxSteepness", 45.0),
-                "islandSize": terrain_data.get("treeGenerator", {}).get("islandSize", 1.0),
-                "density": terrain_data.get("treeGenerator", {}).get("density", 5.0),
-                "randomize": terrain_data.get("treeGenerator", {}).get("randomize", False),
-                "treePrototypes": terrain_data.get("treeGenerator", {}).get("treePrototypes", 3)
-            },
-            "grassGenerator": {
-                "octaves": terrain_data.get("grassGenerator", {}).get("octaves", 3),
-                "scale": terrain_data.get("grassGenerator", {}).get("scale", 0.8),
-                "lacunarity": terrain_data.get("grassGenerator", {}).get("lacunarity", 2.0),
-                "persistence": terrain_data.get("grassGenerator", {}).get("persistence", 0.5),
-                "offset": terrain_data.get("grassGenerator", {}).get("offset", 0.3),
-                "minLevel": terrain_data.get("grassGenerator", {}).get("minLevel", 0.1),
-                "maxLevel": terrain_data.get("grassGenerator", {}).get("maxLevel", 1.0),
-                "maxSteepness": terrain_data.get("grassGenerator", {}).get("maxSteepness", 45.0),
-                "islandSize": terrain_data.get("grassGenerator", {}).get("islandSize", 1.0),
-                "density": terrain_data.get("grassGenerator", {}).get("density", 20),
-                "randomize": terrain_data.get("grassGenerator", {}).get("randomize", False),
-                "grassTextures": terrain_data.get("grassGenerator", {}).get("grassTextures", 2)
-            },"waterGenerator": {
-                "waterType": terrain_data.get("waterGenerator", {}).get("waterType", "none"),
-                "waterLevel": terrain_data.get("waterGenerator", {}).get("waterLevel", 20),  
-                "randomize": terrain_data.get("waterGenerator", {}).get("randomize", True),
-                "riverWidthRange": terrain_data.get("waterGenerator", {}).get("riverWidthRange", (1024, 1024)),
-                "autoUpdate": terrain_data.get("waterGenerator", {}).get("autoUpdate", True)
-    }
-        }
-
-    except json.JSONDecodeError as e:
-        # Log error details
-        print(f"Error parsing JSON: {e}")
-        return jsonify({"error": "Failed to generate valid terrain data."}), 500
-
-    # Return the generated terrain data as JSON
-    return jsonify(structured_response)
+    # Clean the response by removing any triple backticks if present
+    return response.text.strip().strip('```json').strip('```')
 
 
 if __name__ == '__main__':
