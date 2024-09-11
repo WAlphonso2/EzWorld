@@ -1,8 +1,6 @@
 using Newtonsoft.Json;
-using System;
 using System.Collections;
 using System.Text;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -69,17 +67,14 @@ public class AICommunicatorKeep : MonoBehaviour
     {
         if (request.result == UnityWebRequest.Result.Success)
         {
-            GeminiResponse response = JsonConvert.DeserializeObject<GeminiResponse>(request.downloadHandler.text);
 
-            string jsonString = GetOutputJson(response.output);
+            WorldInfo worldInfo = JsonConvert.DeserializeObject<WorldInfo>(request.downloadHandler.text);
 
-            if (jsonString == null)
+            if (worldInfo == null)
             {
-                Debug.Log("Error parsing json output from AI model, aborting generation");
+                Debug.Log("AI output could not be deserialized, aborting world generation");
                 return;
             }
-
-            WorldInfo worldInfo = JsonConvert.DeserializeObject<WorldInfo>(jsonString);
 
             worldGenerator.GenerateNewWorld(worldInfo);
         }
@@ -88,19 +83,4 @@ public class AICommunicatorKeep : MonoBehaviour
             Debug.Log("Failed to get AI Output");
         }
     }
-
-    string GetOutputJson(string text)
-    {
-        string regexPattern = @"\{[^{}]*\}";
-        Match match = Regex.Match(text, regexPattern);
-
-        return match.Success ? match.Groups[0].Value : null;
-    }
-}
-
-[Serializable]
-internal struct GeminiResponse
-{
-    public string input;
-    public string output;
 }

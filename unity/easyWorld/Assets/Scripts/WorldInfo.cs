@@ -1,33 +1,96 @@
-/*
- * Define parameters to the world generation function.
- * Each parameter should have a description stating how the ai
- * model should handle assigning it a value
- */
+using System.Collections.Generic;
+using UnityEngine;
+
 [System.Serializable]
-public struct WorldInfo
+public class WorldInfo
 {
-    /*
-     * Terrain Material must match a value from the TerrainMaterial enum reprsented as an integer
-     */
-    public TerrainMaterial TerrainMaterial;
+    public TerrainData terrainData;
+}
 
-    /*
-     * Cloud Density must be a value in the range [0,1]
-     */
-    public float CloudDensity;
+[System.Serializable]
+public class TerrainData
+{
+    public HeightsGeneratorData heightsGeneratorData;
+    public List<TexturesGeneratorData> texturesGeneratorDataList;
+    public TreeGeneratorData treeGeneratorData;
+    public GrassGeneratorData grassGeneratorData;
+    public WaterGeneratorData waterGeneratorData;
+}
 
-    public override readonly string ToString()
+[System.Serializable]
+public class TexturesGeneratorData
+{
+    public string texture;
+    public string heightCurve;
+    public float tileSizeX;
+    public float tileSizeY;
+}
+
+[System.Serializable]
+public class HeightsGeneratorData
+{
+    public int width;
+    public int height;
+    public int depth;
+    public int octaves;
+    public float scale;
+    public float lacunarity;
+    public float persistence;
+    public float heightCurveOffset;
+    public string heightCurve;
+    public float falloffDirection;
+    public float falloffRange;
+    public bool useFalloffMap;
+    public bool randomize;
+    public bool autoUpdate;
+}
+
+
+
+[System.Serializable]
+public class TreeGeneratorData
+{
+    public int octaves;
+    public float scale;
+    public float lacunarity;
+    public float persistence;
+    public float offset;
+    public float minLevel;
+    public float maxLevel;
+    public float maxSteepness;
+    public float islandSize;
+    public float density;
+    public bool randomize;
+    public int treePrototypes;
+    public override string ToString()
     {
-        return $"\nTerrainMaterial: {TerrainMaterial}" +
-            $"\nCloudDensity: {CloudDensity}";
+        return $"{octaves} {scale} {lacunarity} {persistence} {offset} {minLevel} {maxLevel} {maxSteepness} {islandSize} {density} {randomize} {treePrototypes}";
     }
 }
 
-public enum TerrainMaterial : int
+[System.Serializable]
+public class GrassGeneratorData
 {
-    None = 0,
-    Grass = 1,
-    Dirt = 2,
-    Snow = 3,
-    Sand = 4,
+    public int octaves;
+    public float scale;
+    public float lacunarity;
+    public float persistence;
+    public float offset;
+    public float minLevel;
+    public float maxLevel;
+    public float maxSteepness;
+    public float islandSize;
+    public int density;
+    public bool randomize;
+    public int grassTextures;
+}
+
+[System.Serializable]
+public class WaterGeneratorData
+{
+    public string waterType;
+    public float waterLevel;
+    public Vector2 riverWidthRange;
+    public bool randomize;
+    public bool autoUpdate;
 }

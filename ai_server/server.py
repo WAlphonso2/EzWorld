@@ -93,72 +93,74 @@ def parse_description():
 
     Make sure you return the result in JSON format like this:   
     {{
-        "heightsGenerator": {{
-            "width": integer,
-            "height": integer,
-            "depth": integer,
-            "octaves": integer,
-            "scale": float,
-            "lacunarity": float,
-            "persistence": float,
-            "heightCurve": string,
-            "heightCurveOffset": float,
-            "falloffDirection": float,
-            "falloffRange": float,
-            "useFalloffMap": boolean,
-            "randomize": boolean,
-            "autoUpdate": boolean
-        }},
-        "texturesGenerator": [
-            {{
-                "texture": string,
+        "terrainData":{{
+            "heightsGeneratorData": {{
+                "width": integer,
+                "height": integer,
+                "depth": integer,
+                "octaves": integer,
+                "scale": float,
+                "lacunarity": float,
+                "persistence": float,
                 "heightCurve": string,
-                "tileSizeX": float,
-                "tileSizeY": float
+                "heightCurveOffset": float,
+                "falloffDirection": float,
+                "falloffRange": float,
+                "useFalloffMap": boolean,
+                "randomize": boolean,
+                "autoUpdate": boolean
             }},
-            {{
-                "texture": string,
-                "heightCurve": string,
-                "tileSizeX": float,
-                "tileSizeY": float
+            "texturesGeneratorDataList": [
+                {{
+                    "texture": string,
+                    "heightCurve": string,
+                    "tileSizeX": float,
+                    "tileSizeY": float
+                }},
+                {{
+                    "texture": string,
+                    "heightCurve": string,
+                    "tileSizeX": float,
+                    "tileSizeY": float
+                }},
+                ...
+            ],
+            "treeGeneratorData": {{
+                "octaves": integer,
+                "scale": float,
+                "lacunarity": float,
+                "persistence": float,
+                "offset": float,
+                "minLevel": float,
+                "maxLevel": float,
+                "maxSteepness": float,
+                "islandSize": float,
+                "density": float,
+                "randomize": boolean,
+                "treePrototypes": integer
             }},
-            ...
-        ],
-        "treeGenerator": {{
-            "octaves": integer,
-            "scale": float,
-            "lacunarity": float,
-            "persistence": float,
-            "offset": float,
-            "minLevel": float,
-            "maxLevel": float,
-            "maxSteepness": float,
-            "islandSize": float,
-            "density": float,
-            "randomize": boolean,
-            "treePrototypes": integer
-        }},
-        "grassGenerator": {{
-            "octaves": integer,
-            "scale": float,
-            "lacunarity": float,
-            "persistence": float,
-            "offset": float,
-            "minLevel": float,
-            "maxLevel": float,
-            "maxSteepness": float,
-            "islandSize": float,
-            "density": int,
-            "randomize": boolean,
-            "grassTextures": integer
-        }},
-        "waterGenerator": {{
-            "waterType": string,
-            "waterLevel": float,
-            "riverWidthRangeX": float,  
-            "riverWidthRangeY": float, 
-            "randomize": boolean,
-            "autoUpdate": boolean
+            "grassGeneratorData": {{
+                "octaves": integer,
+                "scale": float,
+                "lacunarity": float,
+                "persistence": float,
+                "offset": float,
+                "minLevel": float,
+                "maxLevel": float,
+                "maxSteepness": float,
+                "islandSize": float,
+                "density": integer,
+                "randomize": boolean,
+                "grassTextures": integer
+            }},
+            "waterGeneratorData": {{
+                "waterType": string,
+                "waterLevel": float,
+                "riverWidthRangeX": float,  
+                "riverWidthRangeY": float, 
+                "randomize": boolean,
+                "autoUpdate": boolean
+            }}
         }}
     }}
 
@@ -177,6 +179,8 @@ def parse_description():
 
         # Clean the response by removing any triple backticks if present
         clean_response = response.text.strip().strip('```json').strip('```')
+
+        return clean_response
 
         # Convert the cleaned response to a JSON structure
         terrain_data = json.loads(clean_response)
