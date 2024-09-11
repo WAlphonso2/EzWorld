@@ -34,8 +34,6 @@ public class TerrainGenerator : Generator
         yield return StartCoroutine(grassGenerator.Generate(worldInfo));
         yield return StartCoroutine(waterGenerator.Generate(worldInfo));
         yield return StartCoroutine(SwitchToGamePlayMode());
-
-        yield return null;
     }
 
     public static AnimationCurve GetHeightCurveFromType(string curveType)

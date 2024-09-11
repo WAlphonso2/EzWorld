@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class AICommunicatorKeep : MonoBehaviour
+public class AICommunicator : MonoBehaviour
 {
     [Header("Server")]
     public string SERVER_URL = "http://localhost:5000/parse_description";
@@ -16,6 +16,12 @@ public class AICommunicatorKeep : MonoBehaviour
     [Header("Text")]
     public bool resetTextOnButtonClick = false;
     public TMP_InputField inputField;
+    private JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
+    {
+        MissingMemberHandling = MissingMemberHandling.Ignore,
+        NullValueHandling = NullValueHandling.Ignore,
+
+    };
 
     [Header("Generation")]
     public WorldGenerator worldGenerator;
@@ -67,8 +73,7 @@ public class AICommunicatorKeep : MonoBehaviour
     {
         if (request.result == UnityWebRequest.Result.Success)
         {
-
-            WorldInfo worldInfo = JsonConvert.DeserializeObject<WorldInfo>(request.downloadHandler.text);
+            WorldInfo worldInfo = JsonConvert.DeserializeObject<WorldInfo>(request.downloadHandler.text, serializerSettings);
 
             if (worldInfo == null)
             {
