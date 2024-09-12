@@ -1,164 +1,114 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+using Assets.Scripts.MapGenerator.Generators;
+using CurvedPathGenerator;
+using System.Collections;
 using UnityEngine;
 
-/*
- * Sample implementation of the generator class
- */
 public class TerrainGenerator : Generator
 {
-    private static IDictionary<TerrainMaterial, Material> materialDictionary;
+    public HeightsGenerator heightsGenerator;
+    public TexturesGenerator texturesGenerator;
+    public TreeGenerator treeGenerator;
+    public GrassGenerator grassGenerator;
+    public WaterGenerator waterGenerator;
+    public PathGenerator pathGenerator;
 
-    [Header("Standard")]
-    public int size = 128;
-    public int height = 30;
-
-    [Header("Macro Perlin Noise")]
-    [Range(0, 1)]
-    public float macroPerlinNoiseWeight = .7f;
-    public float macroPerlinNoiseScale = 5;
-    private float macroPerlinNoiseXOffset;
-    private float macroPerlinNoiseYOffset;
-
-    [Header("Mid Perlin Noise")]
-    [Range(0, 1)]
-    public float midPerlinNoiseWeight = .25f;
-    public float midPerlinNoiseScale = 5;
-    private float midPerlinNoiseXOffset;
-    private float midPerlinNoiseYOffset;
-
-    [Header("Micro Perlin Noise (Ground Rougness)")]
-    [Range(0, 1)]
-    public float microPerlinNoiseWeight = .05f;
-    [Range(1, 30)]
-    public float microPerlinNoiseScale = 5;
-    private float microPerlinNoiseXOffset;
-    private float microPerlinNoiseYOffset;
-
-    private GameObject terrainObject;
-    private Terrain terrain;
-    private TerrainData terrainData;
-    private WorldInfo worldInfo;
-
-    void Start()
-    {
-        LoadMaterials();
-    }
-
-    void LoadMaterials()
-    {
-        materialDictionary = new Dictionary<TerrainMaterial, Material>()
-        {
-            { TerrainMaterial.Sand, Resources.Load<Material>("Sand") },
-            { TerrainMaterial.Dirt, Resources.Load<Material>("Dirt") },
-            { TerrainMaterial.Snow, Resources.Load<Material>("Snow") },
-            { TerrainMaterial.Grass, Resources.Load<Material>("Grass") }
-        };
-    }
+    public Camera initialCamera;
+    public Camera thirdPersonCamera;
+    public GameObject player;
 
     public override void Clear()
     {
-        Destroy(terrainObject);
+        heightsGenerator.Clear();
+        texturesGenerator.Clear();
+        treeGenerator.Clear();
+        grassGenerator.Clear();
+        waterGenerator.Clear();
     }
 
     public override IEnumerator Generate(WorldInfo worldInfo)
     {
-        this.worldInfo = worldInfo;
+        // does order matter here or can they all be run in parallel?
+        yield return StartCoroutine(heightsGenerator.Generate(worldInfo));
+        yield return StartCoroutine(texturesGenerator.Generate(worldInfo));
+        yield return StartCoroutine(treeGenerator.Generate(worldInfo));
+        yield return StartCoroutine(grassGenerator.Generate(worldInfo));
+        yield return StartCoroutine(waterGenerator.Generate(worldInfo));
+        yield return StartCoroutine(SwitchToGamePlayMode());
+    }
 
-        CreateNewTerrainObject();
+    public static AnimationCurve GetHeightCurveFromType(string curveType)
+    {
+        switch (curveType.ToLower())
+        {
+            case "linear":
+                return AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f);
+
+            case "constant":
+                return AnimationCurve.Constant(0.0f, 1.0f, 1.0f);  // Constant value over time
+
+            case "easein":
+                return AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);  // Ease-in (gradual start)
+
+            case "easeout":
+                return new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 0.0f));  // Ease-out (gradual end)
+
+            case "sine":
+                return new AnimationCurve(
+                    new Keyframe(0.0f, 0.0f),
+                    new Keyframe(0.5f, 1.0f),
+                    new Keyframe(1.0f, 0.0f));  // Simulate sine wave
+
+            case "bezier":
+                // Create a Bezier-like curve
+                return new AnimationCurve(
+                    new Keyframe(0.0f, 0.0f, 1.0f, 1.0f),
+                    new Keyframe(0.5f, 1.0f, 0.0f, 0.0f),
+                    new Keyframe(1.0f, 0.0f, -1.0f, -1.0f));
+
+            default:
+                Debug.LogWarning($"Unknown curve type: {curveType}, defaulting to linear.");
+                return AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f);  // Default to linear if unknown
+        }
+    }
+
+    private IEnumerator SwitchToGamePlayMode()
+    {
+        Debug.Log("Waiting for terrain generation to finish...");
+
+        Debug.Log("Terrain generation complete. Switching cameras...");
+
+        // Switch to third-person camera after terrain is generated
+        initialCamera.enabled = false;
+        thirdPersonCamera.enabled = true;
+        thirdPersonCamera.gameObject.SetActive(true);
+
+        Debug.Log("Camera switched. Positioning player...");
+        PositionPlayerOnTerrain();
 
         yield return null;
     }
 
-    public void CreateNewTerrainObject()
+    private void PositionPlayerOnTerrain()
     {
-        CheckPerlinNoiseWeights();
-        UpdatePerlinNoiseSeed();
+        Terrain terrain = Terrain.activeTerrain;
 
-        terrainData = new TerrainData();
-        UpdateTerrainData();
+        UnityEngine.TerrainData terrainData = terrain.terrainData;
 
-        terrainObject = Terrain.CreateTerrainGameObject(terrainData);
+        // Get the center point of the terrain
+        float centerX = terrainData.size.x / 2;
+        float centerZ = terrainData.size.z / 2;
 
-        terrainObject.transform.position = new Vector3(-size / 2, 0, -size / 2);
+        // Randomly position the player within a certain range around the center
+        float range = Mathf.Min(terrainData.size.x, terrainData.size.z) * 0.25f;
+        float randomX = Random.Range(centerX - range, centerX + range);
+        float randomZ = Random.Range(centerZ - range, centerZ + range);
 
-        terrain = terrainObject.GetComponent<Terrain>();
+        // Get the height at the random position on the terrain
+        float yPos = terrain.SampleHeight(new Vector3(randomX, 0, randomZ)) + 1f;
 
-        LoadSelectedMaterial();
-    }
-
-    void UpdateTerrainData()
-    {
-        terrainData.heightmapResolution = size + 1;
-        terrainData.size = new Vector3(size, height, size);
-        terrainData.SetHeights(0, 0, GenerateHeightMap());
-    }
-
-    void LoadSelectedMaterial()
-    {
-        try
-        {
-            terrain.materialTemplate = materialDictionary[worldInfo.TerrainMaterial];
-        }
-        catch
-        {
-            terrain.materialTemplate = new Material(Shader.Find("Unlit/Color"))
-            {
-                color = Color.black
-            };
-        }
-    }
-
-    void CheckPerlinNoiseWeights()
-    {
-        if (Mathf.Abs(macroPerlinNoiseWeight + midPerlinNoiseWeight + microPerlinNoiseWeight - 1) > .001f)
-        {
-            macroPerlinNoiseWeight = .7f;
-            midPerlinNoiseWeight = .25f;
-            microPerlinNoiseWeight = .05f;
-        }
-    }
-
-    float[,] GenerateHeightMap()
-    {
-        int heightMapWidth = size + 1;
-        int heightMapLength = size + 1;
-
-        float[,] heightMap = new float[heightMapWidth, heightMapLength];
-
-        for (int x = 0; x < heightMapWidth; x++)
-        {
-            for (int z = 0; z < heightMapLength; z++)
-            {
-                heightMap[x, z] = CalculatePositionHeight(x, z);
-            }
-        }
-
-        return heightMap;
-    }
-
-    float CalculatePositionHeight(int x, int z)
-    {
-        // scale positions [0,1]
-        float xPos = (float)x / size;
-        float zPos = (float)z / size;
-
-        float macroPerlinNoise = Mathf.PerlinNoise(xPos * macroPerlinNoiseScale + macroPerlinNoiseXOffset, zPos * macroPerlinNoiseScale + macroPerlinNoiseYOffset);
-        float midPerlinNoise = Mathf.PerlinNoise(xPos * midPerlinNoiseScale + midPerlinNoiseXOffset, zPos * midPerlinNoiseScale + midPerlinNoiseYOffset);
-        float microPerlinNoise = Mathf.PerlinNoise(xPos * microPerlinNoiseScale + microPerlinNoiseXOffset, zPos * microPerlinNoiseScale + microPerlinNoiseYOffset);
-
-        float weightedSum = macroPerlinNoise * macroPerlinNoiseWeight + midPerlinNoise * midPerlinNoiseWeight + microPerlinNoise * microPerlinNoiseWeight;
-        return Mathf.Clamp(weightedSum, 0, 1);
-    }
-
-    void UpdatePerlinNoiseSeed()
-    {
-        // acts as random seed for perlin noise as it moves around the perlin noise image
-        macroPerlinNoiseXOffset = Random.Range(-100000, 100000);
-        macroPerlinNoiseYOffset = Random.Range(-100000, 100000);
-        midPerlinNoiseXOffset = Random.Range(-100000, 100000);
-        midPerlinNoiseYOffset = Random.Range(-100000, 100000);
-        microPerlinNoiseXOffset = Random.Range(-100000, 100000);
-        microPerlinNoiseYOffset = Random.Range(-100000, 100000);
+        // Position the player
+        Vector3 playerPosition = new Vector3(randomX, yPos, randomZ);
+        player.transform.position = playerPosition;
+        Debug.Log("Player positioned at " + player.transform.position);
     }
 }

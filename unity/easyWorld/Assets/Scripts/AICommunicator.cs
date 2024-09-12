@@ -1,8 +1,6 @@
 using Newtonsoft.Json;
-using System;
 using System.Collections;
 using System.Text;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -18,6 +16,12 @@ public class AICommunicator : MonoBehaviour
     [Header("Text")]
     public bool resetTextOnButtonClick = false;
     public TMP_InputField inputField;
+    private JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
+    {
+        MissingMemberHandling = MissingMemberHandling.Ignore,
+        NullValueHandling = NullValueHandling.Ignore,
+
+    };
 
     [Header("Generation")]
     public WorldGenerator worldGenerator;
@@ -69,17 +73,13 @@ public class AICommunicator : MonoBehaviour
     {
         if (request.result == UnityWebRequest.Result.Success)
         {
-            GeminiResponse response = JsonConvert.DeserializeObject<GeminiResponse>(request.downloadHandler.text);
+            WorldInfo worldInfo = JsonConvert.DeserializeObject<WorldInfo>(request.downloadHandler.text, serializerSettings);
 
-            string jsonString = GetOutputJson(response.output);
-
-            if (jsonString == null)
+            if (worldInfo == null)
             {
-                Debug.Log("Error parsing json output from AI model, aborting generation");
+                Debug.Log("AI output could not be deserialized, aborting world generation");
                 return;
             }
-
-            WorldInfo worldInfo = JsonConvert.DeserializeObject<WorldInfo>(jsonString);
 
             worldGenerator.GenerateNewWorld(worldInfo);
         }
@@ -88,19 +88,4 @@ public class AICommunicator : MonoBehaviour
             Debug.Log("Failed to get AI Output");
         }
     }
-
-    string GetOutputJson(string text)
-    {
-        string regexPattern = @"\{[^{}]*\}";
-        Match match = Regex.Match(text, regexPattern);
-
-        return match.Success ? match.Groups[0].Value : null;
-    }
-}
-
-[Serializable]
-internal struct GeminiResponse
-{
-    public string input;
-    public string output;
 }
