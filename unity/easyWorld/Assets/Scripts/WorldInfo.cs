@@ -1,33 +1,92 @@
-/*
- * Define parameters to the world generation function.
- * Each parameter should have a description stating how the ai
- * model should handle assigning it a value
- */
+using System.Collections.Generic;
+using UnityEngine;
+
 [System.Serializable]
-public struct WorldInfo
+public class WorldInfo
 {
-    /*
-     * Terrain Material must match a value from the TerrainMaterial enum reprsented as an integer
-     */
-    public TerrainMaterial TerrainMaterial;
-
-    /*
-     * Cloud Density must be a value in the range [0,1]
-     */
-    public float CloudDensity;
-
-    public override readonly string ToString()
-    {
-        return $"\nTerrainMaterial: {TerrainMaterial}" +
-            $"\nCloudDensity: {CloudDensity}";
-    }
+    public TerrainData terrainData;
 }
 
-public enum TerrainMaterial : int
+[System.Serializable]
+public class TerrainData
 {
-    None = 0,
-    Grass = 1,
-    Dirt = 2,
-    Snow = 3,
-    Sand = 4,
+    public HeightsGeneratorData heightsGeneratorData;
+    public List<TexturesGeneratorData> texturesGeneratorDataList;
+    public TreeGeneratorData treeGeneratorData;
+    public GrassGeneratorData grassGeneratorData;
+    public WaterGeneratorData waterGeneratorData;
+}
+
+[System.Serializable]
+public class TexturesGeneratorData
+{
+    public string texture = "none";
+    public string heightCurve = "smooth";
+    public float tileSizeX = 10;
+    public float tileSizeY = 10;
+}
+
+[System.Serializable]
+public class HeightsGeneratorData
+{
+    public int width = 1024;
+    public int height = 1024;
+    public int depth = 100;
+    public int octaves = 4;
+    public float scale = 100;
+    public float lacunarity = 2;
+    public float persistence = .5f;
+    public float heightCurveOffset = .3f;
+    public string heightCurve = "linear";
+    public float falloffDirection = 3;
+    public float falloffRange = 3;
+    public bool useFalloffMap = true;
+    public bool randomize = false;
+    public bool autoUpdate = true;
+}
+
+
+
+[System.Serializable]
+public class TreeGeneratorData
+{
+    public int octaves = 3;
+    public float scale = 1;
+    public float lacunarity = 2;
+    public float persistence = .5f;
+    public float offset = .2f;
+    public float minLevel = .1f;
+    public float maxLevel = .9f;
+    public float maxSteepness = 45;
+    public float islandSize = 1;
+    public float density = 5;
+    public bool randomize = false;
+    public int treePrototypes = 3;
+}
+
+[System.Serializable]
+public class GrassGeneratorData
+{
+    public int octaves = 3;
+    public float scale = .8f;
+    public float lacunarity = 2;
+    public float persistence = .5f;
+    public float offset = .3f;
+    public float minLevel = .1f;
+    public float maxLevel = 1;
+    public float maxSteepness = 45;
+    public float islandSize = 1;
+    public int density = 20;
+    public bool randomize = false;
+    public int grassTextures = 2;
+}
+
+[System.Serializable]
+public class WaterGeneratorData
+{
+    public string waterType = "none";
+    public float waterLevel = 20;
+    public Vector2 riverWidthRange = new(1024, 1024);
+    public bool randomize = true;
+    public bool autoUpdate = true;
 }
