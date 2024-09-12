@@ -1076,12 +1076,12 @@ MonoBehaviour:
   Octaves: 4
   Scale: 40
   Lacunarity: 2
-  Persistance: 0.5
+  Persistence: 0.5
   Offset: 100
   MinLevel: 0
   MaxLevel: 100
   MaxSteepness: 70
-  IslandsSize: 0
+  IslandSize: 0
   Density: 0.5
   Randomize: 0
   AutoUpdate: 0
@@ -2020,7 +2020,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d8ef27c111711429111e6553ea9601, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allowServerStart: 1
+  allowServerStart: 0
   EXECUTABLE: python
   SERVER_DIRECTORY: ai_server
   SERVER_NAME: server.py
@@ -2071,12 +2071,12 @@ MonoBehaviour:
   Octaves: 4
   Scale: 40
   Lacunarity: 2
-  Persistance: 0.5
+  Persistence: 0.5
   Offset: 100
   MinLevel: 0
   MaxLevel: 100
   MaxSteepness: 70
-  IslandsSize: 0
+  IslandSize: 0
   Density: 10
   Randomize: 0
   AutoUpdate: 0

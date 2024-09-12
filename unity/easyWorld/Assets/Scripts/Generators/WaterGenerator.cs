@@ -15,7 +15,7 @@ namespace Assets.Scripts.MapGenerator.Generators
         {
             LoadSettings(worldInfo.terrainData.waterGeneratorData);
 
-            GenerateWater("river");  // Default to river generation, this can be changed
+            GenerateWater(worldInfo.terrainData.waterGeneratorData.waterType);  // Default to river generation, this can be changed
             yield return null;
         }
 

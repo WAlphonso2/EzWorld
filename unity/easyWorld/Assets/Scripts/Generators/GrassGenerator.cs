@@ -11,14 +11,14 @@ namespace Assets.Scripts.MapGenerator.Generators
         public float Scale = 40;
         public float Lacunarity = 2f;
         [Range(0, 1)]
-        public float Persistance = 0.5f;
+        public float Persistence = 0.5f;
         public float Offset = 100f;
         public float MinLevel = 0;
         public float MaxLevel = 100;
         [Range(0, 90)]
         public float MaxSteepness = 70;
         [Range(-1, 1)]
-        public float IslandsSize = 0;
+        public float IslandSize = 0;
         [Range(1, 100)]
         public int Density = 10;
         public bool Randomize;
@@ -47,11 +47,11 @@ namespace Assets.Scripts.MapGenerator.Generators
             float[,] noiseMap = new PerlinMap()
             {
                 Size = terrainData.detailWidth,
-                Octaves = Octaves,
-                Scale = Scale,
-                Offset = Offset,
-                Persistance = Persistance,
-                Lacunarity = Lacunarity
+                     Octaves = Octaves,
+                     Scale = Scale,
+                     Offset = Offset,
+                     Persistance = Persistence,
+                     Lacunarity = Lacunarity
             }.Generate();
 
             for (int i = 0; i < terrainData.detailPrototypes.Length; i++)
@@ -67,7 +67,7 @@ namespace Assets.Scripts.MapGenerator.Generators
                         float yScaled = (y + Random.Range(-1f, 1f)) / terrainData.alphamapHeight;
                         float steepness = terrainData.GetSteepness(xScaled, yScaled);
 
-                        if (noiseMap[x, y] < IslandsSize && steepness < MaxSteepness && height > MinLevel && height < MaxLevel)
+                        if (noiseMap[x, y] < IslandSize && steepness < MaxSteepness && height > MinLevel && height < MaxLevel)
                         {
                             detailLayer[x, y] = Density;
                         }
@@ -96,6 +96,17 @@ namespace Assets.Scripts.MapGenerator.Generators
                 Debug.Log("GrassGeneratorData is null");
                 return;
             }
+            Octaves = data.octaves;
+            Scale = data.scale;
+            Lacunarity = data.lacunarity;
+            Persistence = data.persistence;
+            Offset = data.offset;
+            MinLevel = data.minLevel;
+            MaxLevel = data.maxLevel;
+            MaxSteepness = data.maxSteepness;
+            IslandSize = data.islandSize;
+            Density = data.density;
+            Randomize = data.randomize;
 
             // Clear existing grass textures
             GrassTextures.Clear();

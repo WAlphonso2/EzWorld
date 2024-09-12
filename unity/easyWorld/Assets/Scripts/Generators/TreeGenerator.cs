@@ -18,7 +18,7 @@ namespace Assets.Scripts.MapGenerator.Generators
         [Range(0, 90)]
         public float MaxSteepness = 70;
         [Range(-1, 1)]
-        public float IslandsSize = 0;
+        public float IslandSize = 0;
         [Range(0, 1)]
         public float Density = 0.5f;
         public bool Randomize;
@@ -77,7 +77,7 @@ namespace Assets.Scripts.MapGenerator.Generators
                     if
                         (
                          noiseStep < Density &&
-                         noiseVal < IslandsSize &&
+                         noiseVal < IslandSize &&
                          steepness < MaxSteepness &&
                          height > MinLevel &&
                          height < MaxLevel
@@ -132,7 +132,7 @@ namespace Assets.Scripts.MapGenerator.Generators
             MinLevel = data.minLevel;
             MaxLevel = data.maxLevel;
             MaxSteepness = data.maxSteepness;
-            IslandsSize = data.islandSize;
+            IslandSize = data.islandSize;
             Density = data.density;
             Randomize = data.randomize;
 

@@ -28,20 +28,37 @@ def parse_description():
     You are a terrain generation AI for a game. Based on the user's description, 
     return a JSON object with parameters required for generating terrain. 
     Make sure that the values for each parameter fall within reasonable ranges to avoid any out-of-bounds issues. 
+    If the description for the terrain does not need tree or grass like dessert(height 162, octaves 8, ) or snow unles the user specicly said, do not add( make the values zero's).
     Please use the following guidelines for each module:
 
     HeightsGenerator:
-    - width and height should be around 1024 (minimum 512, maximum 2048).
-    - depth represents the terrain height and should be between 5 and 150.
+    Width: Determines the width of the terrain in units.
+    Height: Determines the height (or length) of the terrain in units.
+    Depth: Controls the maximum height variation of the terrain (vertical scaling).
+    Octaves: Specifies the number of noise layers used in terrain generation (more octaves add detail).
+    Scale: Adjusts the scale of the noise map, affecting the size of terrain features.
+    Lacunarity: Controls the increase in frequency for each octave, adding finer details.
+    Persistance: Determines how the amplitude decreases with each octave, affecting how details diminish.
+    HeightCurve: An animation curve that adjusts the terrain heights based on evaluated noise values.
+    Offset: A value to randomize or shift the noise pattern used in terrain generation.
+    FalloffDirection: Defines the direction of the falloff, influencing terrain shape towards edges.
+    FalloffRange: Defines how far the falloff effect reaches, influencing terrain smoothness.
+    UseFalloffMap: Toggles the use of a falloff map to control terrain generation near edges.
+    Randomize: Enables randomization of the noise offset to generate different terrains each time.
+    AutoUpdate: Automatically updates the terrain when changes are made in the inspector.
+    ShallowDepth: Controls the shallow depth for terrain, affecting low-lying areas.
+
+    - width and height should be around 1024 (minimum 512, maximum 1024).
+    - depth represents the terrain height and should be between 5 and 200.
     - octaves represent the levels of detail and should be between 1 and 15.
     - scale determines the level of detail and should range between 60 and 500.
-    - lacunarity affects how much detail is added at each octave, typically between 1 and 3.0.
-    - persistence controls how each octave contributes to the overall shape, typically between 0.3 and 0.8.
+    - lacunarity affects how much detail is added at each octave, typically between 1 and 5.
+    - persistence controls how each octave contributes to the overall shape, typically between 0 and 1.
     - heightCurve: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"].  Rate of change of heights curve.
     - heightCurveOffset is the vertical offset of the height curve, usually between 1000 and 12000.
     - falloffDirection affects the direction of terrain slopes, usually between 1 and 7.
     - falloffRange affects the slope of the terrain, usually between 1 and 5.
-    - useFalloffMap should be true or false, with values typically around 4 or 5.
+    - useFalloffMap should be true or false.
     - randomize and autoUpdate should be true or false.
 
     TexturesGenerator:
@@ -58,30 +75,55 @@ def parse_description():
 
 
     GrassGenerator:
-    - octaves should be between 1 and 8.
-    - scale should be between 0.5 and 50.
-    - lacunarity should be between 1.5 and 3.
-    - persistence should be between 0.3 and 0.7.
+    Octaves: Controls the number of noise layers used in the Perlin noise generation (more octaves add detail).
+    Scale: Defines the scale of the Perlin noise; a higher value stretches the noise pattern, making features larger.
+    Lacunarity: Determines how much the frequency of each octave increases; higher values result in more noise details.
+    Persistance: Controls how the amplitude decreases with each octave; higher values retain more detail in higher octaves.
+    Offset: A shift applied to the Perlin noise generation, used to randomize the noise pattern.
+    MinLevel: Minimum terrain height where grass or trees can be placed.
+    MaxLevel: Maximum terrain height where grass or trees can be placed.
+    MaxSteepness: The steepest slope on which grass or trees can be placed (higher values allow steeper placement).
+    IslandsSize: Defines the size of areas where grass or trees are not placed; used to control the density of islands.
+    Density: Controls how densely the grass or trees are placed within the allowed areas.
+
+    - octaves should be between 0 and 8.
+    - scale should be between 0 and 50.
+    - lacunarity should be between 0 and 3.
+    - persistence should be between 0 and 1.
     - offset should be between 0 and 1.
-    - minLevel should be between 0.05 and 1.
-    - maxLevel should be between 0.05 and 1.
-    - maxSteepness should be between 10 and 70.
+    - minLevel should be between 0 and 1.
+    - maxLevel should be between 0 and 1.
+    - maxSteepness should be between 0 and 90.
     - islandSize should be between -1 and 1.
-    - density should be between 1 and 100.
+    - density should be between 0 and 100.
     - randomize and autoUpdate should be true or false.
     - Grass Texture should be an integer representing the number of Grass Texture, typically between 1 and 10.
 
     TreeGenerator:
-    - octaves should be between 1 and 8.
-    - scale should be between 0.5 and 50.
-    - lacunarity should be between 1.5 and 3.
-    - persistence should be between 0.3 and 0.7.
-    - offset should be between 0 and 1.
-    - minLevel should be between 0.05 and 1.
-    - maxLevel should be between 0.05 and 1.
-    - maxSteepness should be between 10 and 70.
+    Octaves: Determines the number of noise layers used for tree distribution (more octaves add finer details to the noise).
+    Scale: Adjusts the scale of the noise map, affecting how spread out or compact the tree distribution will be.
+    Lacunarity: Controls the increase in frequency for each noise octave, affecting the overall detail of tree distribution.
+    Persistance: Defines how the amplitude of each noise octave diminishes, influencing the terrain's fine details for tree placement.
+    Offset: A value used to shift the noise map, introducing randomness to the tree distribution.
+    MinLevel: The minimum height at which trees can be placed.
+    MaxLevel: The maximum height at which trees can be placed.
+    MaxSteepness: The steepest slope on which trees can grow; trees won't appear on slopes steeper than this value.
+    IslandsSize: Controls the areas where trees are placed based on noise values; lower values restrict trees to specific areas, while higher values spread trees across the terrain.
+    Density: Determines how densely trees are placed on the terrain; higher values result in more trees.
+    Randomize: If enabled, randomizes the noise offset to produce different tree layouts each time the map is generated.
+    AutoUpdate: Automatically regenerates the trees whenever any parameter is changed in the inspector.
+    for forest uslay its around Density 1, IslandsSize 1, MaxLevel 100.
+
+    - octaves should be between 1 and 10.
+    - scale should be between 0 and 100.
+    - lacunarity should be between 0 and 3.
+    - persistence should be between 0 and 1.0.
+    - offset should be between 2000 and 10000.
+    - minLevel should be between 0 and 100.
+    - maxLevel should be between 0 and 100.
+    - maxSteepness should be between 0 and 90.
     - islandSize should be between -1 and 1.
-    - density should be between 0.1 and 10.
+    - density should be between 0 and .3.
     - randomize and autoUpdate should be true or false.
     - treePrototypes should be an integer representing the number of tree prefabs, typically between 1 and 10.
 
@@ -168,7 +210,6 @@ def parse_description():
     Use the following description to generate appropriate values:
     "{description}"
     """
-
     # Call the Gemini API to generate the content
     response = model.generate_content(prompt)
 
