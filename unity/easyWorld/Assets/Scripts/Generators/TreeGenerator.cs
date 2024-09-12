@@ -11,7 +11,7 @@ namespace Assets.Scripts.MapGenerator.Generators
         public float Scale = 40;
         public float Lacunarity = 2f;
         [Range(0, 1)]
-        public float Persistance = 0.5f;
+        public float Persistence = 0.5f;
         public float Offset = 100f;
         public float MinLevel = 0;
         public float MaxLevel = 100;
@@ -54,11 +54,11 @@ namespace Assets.Scripts.MapGenerator.Generators
             float[,] noiseMap = new PerlinMap()
             {
                 Size = terrainData.alphamapWidth,
-                Octaves = Octaves,
-                Scale = Scale,
-                Offset = Offset,
-                Persistance = Persistance,
-                Lacunarity = Lacunarity
+                     Octaves = Octaves,
+                     Scale = Scale,
+                     Offset = Offset,
+                     Persistance = Persistence,
+                     Lacunarity = Lacunarity
             }.Generate(out maxLocalNoiseHeight, out minLocalNoiseHeight);
 
             for (int x = 0; x < terrainData.alphamapWidth; x++)
@@ -75,16 +75,16 @@ namespace Assets.Scripts.MapGenerator.Generators
                     float noiseVal = noiseMap[x, y];
 
                     if
-                    (
-                        noiseStep < Density &&
-                        noiseVal < IslandsSize &&
-                        steepness < MaxSteepness &&
-                        height > MinLevel &&
-                        height < MaxLevel
-                    )
-                    {
-                        treePos.Add(new Vector3(xScaled, heightScaled, yScaled));
-                    }
+                        (
+                         noiseStep < Density &&
+                         noiseVal < IslandsSize &&
+                         steepness < MaxSteepness &&
+                         height > MinLevel &&
+                         height < MaxLevel
+                        )
+                        {
+                            treePos.Add(new Vector3(xScaled, heightScaled, yScaled));
+                        }
                 }
             }
 
@@ -123,6 +123,18 @@ namespace Assets.Scripts.MapGenerator.Generators
                 Debug.Log("TreeGeneratorData is null");
                 return;
             }
+
+            Octaves = data.octaves;
+            Scale = data.scale;
+            Lacunarity = data.lacunarity;
+            Persistence = data.persistence;
+            Offset = data.offset;
+            MinLevel = data.minLevel;
+            MaxLevel = data.maxLevel;
+            MaxSteepness = data.maxSteepness;
+            IslandsSize = data.islandSize;
+            Density = data.density;
+            Randomize = data.randomize;
 
             // Clear existing trees
             TreePrototypes.Clear();

@@ -173,10 +173,11 @@ def parse_description():
     response = model.generate_content(prompt)
 
     # Log the raw API response for debugging
-    # print("API Response:", response.text)
+    print("API Response:", response.text)
 
     # Clean the response by removing any triple backticks if present
     return response.text.strip().strip('```json').strip('```')
+
 
 
 if __name__ == '__main__':
