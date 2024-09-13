@@ -3,22 +3,15 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 import json
-import json
 
-# Load environment variables
 # Load environment variables
 load_dotenv()
 
 # Configure Google Generative AI with the API key
 genai.configure(api_key=os.environ.get("API_KEY"))
 
-
-# Configure Google Generative AI with the API key
-genai.configure(api_key=os.environ.get("API_KEY"))
-
 app = Flask(__name__)
 
-# Initialize the Gemini model
 # Initialize the Gemini model
 model = genai.GenerativeModel("gemini-1.5-flash")
 
@@ -27,10 +20,6 @@ def parse_description():
 
     description = request.json.get('description')
 
-    if not description:
-        return jsonify({"error": "Description is required."}), 400
-
-    # Create the prompt for the AI
     if not description:
         return jsonify({"error": "Description is required."}), 400
 
