@@ -5,6 +5,7 @@ using UnityEngine;
 public class WorldInfo
 {
     public TerrainData terrainData;
+    public float[,] heightMap;
 }
 
 [System.Serializable]

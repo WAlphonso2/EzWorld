@@ -87,6 +87,19 @@ public class HeightsGenerator : Generator
         float[,] noiseMap = GenerateNoise(falloff);
         terrainData.SetHeights(0, 0, noiseMap);
 
+        // Store the noiseMap in WorldInfo
+        worldInfo.heightMap = noiseMap;
+
+        // Log height map values for debugging
+        Debug.Log("Height map stored in WorldInfo. First 10 height values:");
+        for (int y = 0; y < Mathf.Min(Height, 10); y++)
+        {
+            for (int x = 0; x < Mathf.Min(Width, 10); x++)
+            {
+                Debug.Log($"Height at [{x},{y}]: {worldInfo.heightMap[y, x]}");
+            }
+        }
+
         yield return null;
     }
 
