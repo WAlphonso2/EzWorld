@@ -40,6 +40,7 @@ def parse_description():
     return a JSON object with parameters required for generating terrain. 
     Make sure that the values for each parameter fall within reasonable ranges to avoid any out-of-bounds issues. 
     If the description for the terrain does not need tree or grass like dessert(height 162, octaves 8, ) or snow unles the user specicly said, do not add( make the values zero's).
+    Make sure if the user say dont add <object> make sure to set the value to zero, for exampl if the user say dont add tree or grass or water(etc) make it zero.
     Please use the following guidelines for each module:
 
     HeightsGenerator:
@@ -60,15 +61,15 @@ def parse_description():
     ShallowDepth: Controls the shallow depth for terrain, affecting low-lying areas.
 
     - width and height should be around 1024 (minimum 512, maximum 1024).
-    - depth represents the terrain height and should be between 5 and 200.
+    - depth represents the terrain height and should be between 5 and 120.
     - octaves represent the levels of detail and should be between 1 and 15.
-    - scale determines the level of detail and should range between 60 and 500.
+    - scale determines the level of detail and should range between 100 and 500.
     - lacunarity affects how much detail is added at each octave, typically between 1 and 5.
-    - persistence controls how each octave contributes to the overall shape, typically between 0 and 1.
+    - persistence controls how each octave contributes to the overall shape, typically between 0 and 0.5.
     - heightCurve: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"].  Rate of change of heights curve.
     - heightCurveOffset is the vertical offset of the height curve, usually between 1000 and 12000.
-    - falloffDirection affects the direction of terrain slopes, usually between 1 and 7.
-    - falloffRange affects the slope of the terrain, usually between 1 and 5.
+    - falloffDirection affects the direction of terrain slopes, usually between 1 and 4.
+    - falloffRange affects the slope of the terrain, usually between 1 and 4.
     - useFalloffMap should be true or false.
     - randomize and autoUpdate should be true or false.
 
@@ -97,16 +98,16 @@ def parse_description():
     IslandsSize: Defines the size of areas where grass or trees are not placed; used to control the density of islands.
     Density: Controls how densely the grass or trees are placed within the allowed areas.
 
-    - octaves should be between 0 and 8.
+    - octaves should be between 0 and 4.
     - scale should be between 0 and 50.
     - lacunarity should be between 0 and 3.
     - persistence should be between 0 and 1.
-    - offset should be between 0 and 1.
-    - minLevel should be between 0 and 1.
-    - maxLevel should be between 0 and 1.
+    - offset should be between 1000 and 10000.
+    - minLevel should be between -400 and -1.
+    - maxLevel should be between 0 and 100.
     - maxSteepness should be between 0 and 90.
     - islandSize should be between -1 and 1.
-    - density should be between 0 and 100.
+    - density should be between 1 and 1000.
     - randomize and autoUpdate should be true or false.
     - Grass Texture should be an integer representing the number of Grass Texture, typically between 1 and 10.
 

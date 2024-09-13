@@ -19,8 +19,8 @@ namespace Assets.Scripts.MapGenerator.Generators
         public float MaxSteepness = 70;
         [Range(-1, 1)]
         public float IslandSize = 0;
-        [Range(1, 100)]
-        public int Density = 10;
+        [Range(1, 1000)]  // Increased range to allow for higher density
+        public int Density = 1000;  // Default density set to a higher value
         public bool Randomize;
         public bool AutoUpdate;
 
@@ -38,42 +38,63 @@ namespace Assets.Scripts.MapGenerator.Generators
             List<DetailPrototype> detailPrototypes = new List<DetailPrototype>();
             foreach (var g in GrassTextures)
             {
-                detailPrototypes.Add(new DetailPrototype() { prototypeTexture = g });
+                var detailPrototype = new DetailPrototype
+                {
+                    prototypeTexture = g,
+                    renderMode = DetailRenderMode.GrassBillboard,
+                    healthyColor = Color.green,
+                    dryColor = Color.yellow
+                };
+                detailPrototypes.Add(detailPrototype);
             }
 
             UnityEngine.TerrainData terrainData = Terrain.activeTerrain.terrainData;
             terrainData.detailPrototypes = detailPrototypes.ToArray();
 
+            // Set a high detail resolution for denser grass placement
+            int detailResolution = 1024;
+            terrainData.SetDetailResolution(detailResolution, 8);
+
+            // Generate Perlin noise map for grass placement
             float[,] noiseMap = new PerlinMap()
             {
                 Size = terrainData.detailWidth,
-                     Octaves = Octaves,
-                     Scale = Scale,
-                     Offset = Offset,
-                     Persistance = Persistence,
-                     Lacunarity = Lacunarity
+                Octaves = Octaves,
+                Scale = Scale,
+                Offset = Offset,
+                Persistance = Persistence,
+                Lacunarity = Lacunarity
             }.Generate();
+
+            // Grass counter to track the number of grass instances generated
+            int grassCount = 0;
+
+            // Adjust this multiplier to control how much noise affects the grass placement
+            float noiseInfluenceMultiplier = Mathf.Lerp(1f, 0f, Density / 1000f);  // Less noise influence at max density
 
             for (int i = 0; i < terrainData.detailPrototypes.Length; i++)
             {
                 int[,] detailLayer = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, i);
 
-                for (int x = 0; x < terrainData.alphamapWidth; x++)
+                for (int x = 0; x < terrainData.detailWidth; x++)
                 {
-                    for (int y = 0; y < terrainData.alphamapHeight; y++)
+                    for (int y = 0; y < terrainData.detailHeight; y++)
                     {
                         float height = terrainData.GetHeight(x, y);
-                        float xScaled = (x + Random.Range(-1f, 1f)) / terrainData.alphamapWidth;
-                        float yScaled = (y + Random.Range(-1f, 1f)) / terrainData.alphamapHeight;
+                        float xScaled = (x + Random.Range(-1f, 1f)) / terrainData.detailWidth;
+                        float yScaled = (y + Random.Range(-1f, 1f)) / terrainData.detailHeight;
                         float steepness = terrainData.GetSteepness(xScaled, yScaled);
+                        float noiseValue = noiseMap[x, y] * noiseInfluenceMultiplier;
 
-                        if (noiseMap[x, y] < IslandSize && steepness < MaxSteepness && height > MinLevel && height < MaxLevel)
+                        // Adjust grass placement conditions for high density
+                        if ((noiseValue < IslandSize || Density == 1000) && steepness < MaxSteepness && height > MinLevel && height < MaxLevel)
                         {
-                            detailLayer[x, y] = Density;
+                            detailLayer[x, y] = Mathf.Clamp(Density, 1, 1000);
+                            grassCount++;  // Count each grass instance placed
                         }
                         else
                         {
-                            detailLayer[x, y] = 0;
+                            detailLayer[x, y] = 0;  // No grass if conditions aren't met
                         }
                     }
                 }
@@ -81,21 +102,27 @@ namespace Assets.Scripts.MapGenerator.Generators
                 terrainData.SetDetailLayer(0, 0, i, detailLayer);
             }
 
+            // Log the number of grass patches generated
+            Debug.Log(grassCount + " grass patches were generated.");
+
             yield return null;
         }
 
         public override void Clear()
         {
+            // Clear grass details
             Terrain.activeTerrain.terrainData.detailPrototypes = null;
+            Debug.Log("Grass cleared.");
         }
 
         private void LoadSettings(GrassGeneratorData data)
         {
             if (data == null)
             {
-                Debug.Log("GrassGeneratorData is null");
+                Debug.LogError("GrassGeneratorData is null");
                 return;
             }
+
             Octaves = data.octaves;
             Scale = data.scale;
             Lacunarity = data.lacunarity;
@@ -108,22 +135,18 @@ namespace Assets.Scripts.MapGenerator.Generators
             Density = data.density;
             Randomize = data.randomize;
 
-            // Clear existing grass textures
+            // Load grass textures
             GrassTextures.Clear();
-
-            if (data.grassTextures > 0)
+            for (int i = 0; i < data.grassTextures; i++)
             {
-                for (int i = 0; i < data.grassTextures; i++)
+                Texture2D grassTexture = Resources.Load<Texture2D>($"Grass/Grass {i + 1}");
+                if (grassTexture != null)
                 {
-                    Texture2D grassTexture = Resources.Load<Texture2D>($"Grass/Grass {i + 1}");
-                    if (grassTexture != null)
-                    {
-                        GrassTextures.Add(grassTexture);
-                    }
-                    else
-                    {
-                        Debug.LogError($"Grass texture '{i + 1}' not found in Resources/Grass folder.");
-                    }
+                    GrassTextures.Add(grassTexture);
+                }
+                else
+                {
+                    Debug.LogError($"Grass texture '{i + 1}' not found in Resources/Grass folder.");
                 }
             }
         }
