@@ -49,6 +49,15 @@ public class HeightsGenerator : Generator
 
     public override IEnumerator Generate(WorldInfo worldInfo)
     {
+
+        // Check if there's an active terrain
+        Terrain terrain = Terrain.activeTerrain;
+        if (terrain == null)
+        {
+            Debug.LogError("No active terrain found. Add a terrain to the scene.");
+            yield break;
+        }
+        
         LoadSettings(worldInfo.terrainData.heightsGeneratorData);
 
         if (Randomize)
