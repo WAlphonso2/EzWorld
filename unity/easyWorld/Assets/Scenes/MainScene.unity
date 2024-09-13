@@ -652,7 +652,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  Offset: 5020.328
+  Offset: 3203.7231
   FalloffDirection: 3
   FalloffRange: 3
   UseFalloffMap: 0
@@ -1720,9 +1720,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1348593292}
+  - component: {fileID: 1348593289}
   - component: {fileID: 1348593291}
   - component: {fileID: 1348593290}
-  - component: {fileID: 1348593289}
   m_Layer: 0
   m_Name: PathGenerator
   m_TagString: Untagged
@@ -1742,37 +1742,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8aa3a31b124bbee47b26b967fb614a86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsClosed: 0
-  IsLivePath: 0
-  IsShowingIcons: 1
-  PathDensity: 5
-  EditMode: 0
-  CreateMeshFlag: 1
-  LineMehsWidth: 0.2
-  LineOpacity: 0.7
-  LineSpeed: 10
-  LineTiling: 20
-  LineFilling: 1
-  LineRenderQueue: 2500
-  LineTexture: {fileID: 0}
-  NodeCount: 6
-  PathLength: 1024
-  AngleVarianceX: 30
-  AngleVarianceY: 30
-  NoiseScale: 0.1
-  HeightNoiseScale: 0.05
-  PathList: []
-  PathLengths: []
-  NodeList:
-  - {x: 2.758707, y: 0, z: 2.9333081}
-  - {x: -2.416585, y: 0, z: -1.9111825}
-  AngleList:
-  - {x: 0.09239197, y: 0, z: 2.3071096}
-  NodeList_World:
-  - {x: -117.72842, y: 92.85593, z: 120.04038}
-  - {x: -122.90371, y: 92.85593, z: 115.195885}
-  AngleList_World:
-  - {x: -120.39473, y: 92.85593, z: 119.41418}
+  pathWidth: 2
+  pathDensity: 50
+  PathTextures:
+  - {fileID: 2800000, guid: f7184ea41d1f21d4ca8989233a0ddac0, type: 3}
 --- !u!23 &1348593290
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2188,12 +2161,12 @@ MonoBehaviour:
   Scale: 1000
   Lacunarity: 24.48
   Persistence: 1
-  Offset: 7781.09
-  MinLevel: -100
-  MaxLevel: 1000
-  MaxSteepness: 48.2
-  IslandSize: 1
-  Density: 758
+  Offset: 8250.313
+  MinLevel: -226
+  MaxLevel: 579.4
+  MaxSteepness: 70.6
+  IslandSize: 0.225
+  Density: 1000
   Randomize: 1
   AutoUpdate: 0
   GrassTextures:

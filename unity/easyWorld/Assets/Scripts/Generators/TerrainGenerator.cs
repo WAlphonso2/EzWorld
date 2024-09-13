@@ -1,5 +1,4 @@
 using Assets.Scripts.MapGenerator.Generators;
-using CurvedPathGenerator;
 using System.Collections;
 using UnityEngine;
 
@@ -23,6 +22,7 @@ public class TerrainGenerator : Generator
         treeGenerator.Clear();
         grassGenerator.Clear();
         waterGenerator.Clear();
+        pathGenerator.Clear();
     }
 
     public override IEnumerator Generate(WorldInfo worldInfo)
@@ -33,6 +33,8 @@ public class TerrainGenerator : Generator
         yield return StartCoroutine(treeGenerator.Generate(worldInfo));
         yield return StartCoroutine(grassGenerator.Generate(worldInfo));
         yield return StartCoroutine(waterGenerator.Generate(worldInfo));
+        yield return StartCoroutine(pathGenerator.Generate(worldInfo));
+
         yield return StartCoroutine(SwitchToGamePlayMode());
     }
 
