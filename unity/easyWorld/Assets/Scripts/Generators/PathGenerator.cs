@@ -1,599 +1,258 @@
-﻿using System.Collections;
+﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Collections;
+
 public class PathGenerator : Generator
 {
-    public int pathWidth = 2;    // Width of the path
-    public int pathDensity = 50; // Points per curve
-    public List<Texture2D> PathTextures; // List of textures to paint the path
-
-    private Terrain terrain;
-    private float[,] heightMap;
-    private int heightMapWidth;
-    private int heightMapHeight;
-    private float terrainDepth;
-
-    public override void Clear()
-    {
-        foreach (Transform child in transform)
-        {
-            GameObject.Destroy(child.gameObject);
-        }
-    }
+    public Terrain terrain; // Drag and drop the terrain in the Inspector
+    public int pathWidth = 10;  // Width of the path
+    public Texture2D selectedTexture; // Texture selected from the editor
+    public int curveSmoothness = 75; // Number of points to smooth the path
+    public int splitChance = 20; // Percentage chance to split the path at each point
+    public float splitSpread = 30f; // How much the split paths should spread out
 
     public override IEnumerator Generate(WorldInfo worldInfo)
     {
-        Debug.Log("Starting PathGenerator.Generate");
-        yield return new WaitForSeconds(0.1f);
-
-        terrain = Terrain.activeTerrain;
         if (terrain == null)
         {
-            Debug.LogError("No active terrain found in the scene.");
-            yield break;
-        }
-        else
-        {
-            Debug.Log("Active terrain found: " + terrain.name);
-        }
-
-        // Load height data from WorldInfo
-        if (!LoadHeightData(worldInfo))
-        {
-            Debug.LogError("Height map data could not be loaded from WorldInfo.");
+            Debug.LogError("No terrain assigned.");
             yield break;
         }
 
-        // Generate multiple random paths
-        for (int i = 0; i < PathTextures.Count; i++)
+        if (selectedTexture == null)
         {
-            Debug.Log("Generating random curved path with texture index: " + i);
-            GenerateRandomCurvedPath(i);
+            Debug.LogError("No texture selected for the path.");
+            yield break;
         }
 
-        // Apply textures to the paths after generation
-        PaintPathOnTerrain();
+        Debug.Log("Generating paths on terrain");
 
-        yield return null;
-    }
-
-    private bool LoadHeightData(WorldInfo worldInfo)
-    {
-        Debug.Log("Attempting to load height map data from WorldInfo...");
-
-        if (worldInfo == null)
-        {
-            Debug.LogError("WorldInfo is null!");
-            return false;
-        }
-
-        if (worldInfo.terrainData == null)
-        {
-            Debug.LogError("WorldInfo.terrainData is null! Ensure that the HeightsGenerator properly populates the terrainData.");
-            return false;
-        }
-
-        if (worldInfo.heightMap == null)
-        {
-            Debug.LogError("Height map is null! Ensure HeightsGenerator generates and stores the heightMap correctly.");
-            return false;
-        }
-
-        // If we get here, heightMap should not be null
-        heightMap = worldInfo.heightMap;
-        heightMapWidth = heightMap.GetLength(0);
-        heightMapHeight = heightMap.GetLength(1);
-        terrainDepth = worldInfo.terrainData.heightsGeneratorData.depth;
-
-        Debug.Log($"Height map loaded successfully: width = {heightMapWidth}, height = {heightMapHeight}, depth = {terrainDepth}");
-        return true;
-    }
-
-
-    private float GetHeightFromHeightMap(Vector3 position)
-    {
-        float normalizedX = position.x / terrain.terrainData.size.x;
-        float normalizedZ = position.z / terrain.terrainData.size.z;
-
-        int heightMapX = Mathf.Clamp(Mathf.FloorToInt(normalizedX * heightMapWidth), 0, heightMapWidth - 1);
-        int heightMapZ = Mathf.Clamp(Mathf.FloorToInt(normalizedZ * heightMapHeight), 0, heightMapHeight - 1);
-
-        float heightValue = heightMap[heightMapZ, heightMapX] * terrainDepth;
-        Debug.Log($"Height value retrieved from height map: {heightValue} at position ({heightMapX}, {heightMapZ})");
-        return heightValue;
-    }
-
-    private void GenerateRandomCurvedPath(int textureIndex)
-    {
-        Vector3 terrainSize = terrain.terrainData.size;
-        Debug.Log($"Generating random curved path on terrain of size: {terrainSize}");
-
-        Vector3 startPoint = new Vector3(
-            Random.Range(0, terrainSize.x),
-            0,
-            Random.Range(0, terrainSize.z)
-        );
-
-        Vector3 endPoint = new Vector3(
-            Random.Range(0, terrainSize.x),
-            0,
-            Random.Range(0, terrainSize.z)
-        );
-
-        Vector3 controlPoint1 = new Vector3(
-            Random.Range(0, terrainSize.x),
-            0,
-            Random.Range(0, terrainSize.z)
-        );
-
-        Vector3 controlPoint2 = new Vector3(
-            Random.Range(0, terrainSize.x),
-            0,
-            Random.Range(0, terrainSize.z)
-        );
-
-        Debug.Log($"Start point: {startPoint}, End point: {endPoint}, Control points: {controlPoint1}, {controlPoint2}");
-        CreatePathWithBezier(startPoint, controlPoint1, controlPoint2, endPoint, textureIndex);
-    }
-
-    private void CreatePathWithBezier(Vector3 startPoint, Vector3 controlPoint1, Vector3 controlPoint2, Vector3 endPoint, int textureIndex)
-    {
-        Debug.Log($"Creating path with Bezier curve using texture index: {textureIndex}");
-
-        for (float t = 0; t <= 1; t += 1.0f / pathDensity)
-        {
-            Vector3 interpolatedPoint = CalculateBezierPoint(t, startPoint, controlPoint1, controlPoint2, endPoint);
-
-            float terrainHeight = GetHeightFromHeightMap(interpolatedPoint);
-            Vector3 pathPosition = new Vector3(interpolatedPoint.x, terrainHeight, interpolatedPoint.z);
-
-            Debug.Log($"Bezier path point at t={t}: {pathPosition}");
-        }
-    }
-
-    private Vector3 CalculateBezierPoint(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
-    {
-        float u = 1 - t;
-        float tt = t * t;
-        float uu = u * u;
-        float uuu = uu * u;
-        float ttt = tt * t;
-
-        Vector3 point = uuu * p0;
-        point += 3 * uu * t * p1;
-        point += 3 * u * tt * p2;
-        point += ttt * p3;
-
-        return point;
-    }
-
-    private void PaintPathOnTerrain()
-    {
         UnityEngine.TerrainData terrainData = terrain.terrainData;
 
-        float[,,] alphaMap = terrainData.GetAlphamaps(0, 0, terrainData.alphamapWidth, terrainData.alphamapHeight);
-        int alphaMapWidth = terrainData.alphamapWidth;
-        int alphaMapHeight = terrainData.alphamapHeight;
+        int pathTextureIndex = GetTextureIndexOrAdd(terrain, selectedTexture);
 
-        Debug.Log("Painting path on terrain...");
-
-        for (int i = 0; i < PathTextures.Count; i++)
+        if (pathTextureIndex == -1)
         {
-            int pathTextureIndex = GetUniqueTextureIndex(terrainData);
+            Debug.LogError("Selected texture not found in terrain textures.");
+            yield break;
+        }
 
-            Debug.Log($"Painting path with texture index: {pathTextureIndex}");
+        int terrainWidth = terrainData.alphamapWidth;
+        int terrainLength = terrainData.alphamapHeight; // Z-axis for length of the terrain
 
-            for (float t = 0; t <= 1; t += 1.0f / pathDensity)
+        // Generate the first path moving in X direction
+        List<List<Vector2>> xDirectionPaths = GenerateSplitPathsInXDirection(terrainWidth, terrainLength);
+
+        // Generate the second path moving in Z direction
+        List<List<Vector2>> zDirectionPaths = GenerateSplitPathsInZDirection(terrainWidth, terrainLength);
+
+        // Combine both sets of paths
+        List<Vector2> smoothPathPoints = new List<Vector2>();
+        foreach (var path in xDirectionPaths)
+        {
+            smoothPathPoints.AddRange(SmoothBezierPath(path, curveSmoothness));
+        }
+        foreach (var path in zDirectionPaths)
+        {
+            smoothPathPoints.AddRange(SmoothBezierPath(path, curveSmoothness));
+        }
+
+        // Get the existing alphamap
+        float[,,] alphamaps = terrainData.GetAlphamaps(0, 0, terrainWidth, terrainLength);
+
+        // Apply the paths on the terrain
+        foreach (Vector2 point in smoothPathPoints)
+        {
+            int x = Mathf.RoundToInt(point.x);
+            int z = Mathf.RoundToInt(point.y); // Z-axis movement
+
+            // Draw the path on the alphamap
+            for (int i = -pathWidth / 2; i < pathWidth / 2; i++)
             {
-                Vector3 interpolatedPoint = CalculateBezierPoint(t, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero);
-
-                float normalizedX = (interpolatedPoint.x - terrain.transform.position.x) / terrainData.size.x;
-                float normalizedZ = (interpolatedPoint.z - terrain.transform.position.z) / terrainData.size.z;
-
-                int alphaX = Mathf.FloorToInt(normalizedX * alphaMapWidth);
-                int alphaZ = Mathf.FloorToInt(normalizedZ * alphaMapHeight);
-
-                // Paint logic (similar to what you had before)
-                int radius = Mathf.FloorToInt(pathWidth * 0.5f);
-                for (int x = alphaX - radius; x <= alphaX + radius; x++)
+                for (int j = -pathWidth / 2; j < pathWidth / 2; j++)
                 {
-                    for (int z = alphaZ - radius; z <= alphaZ + radius; z++)
+                    int newX = Mathf.Clamp(x + i, 0, terrainWidth - 1);
+                    int newZ = Mathf.Clamp(z + j, 0, terrainLength - 1); // Z-axis clamp
+
+                    for (int layer = 0; layer < alphamaps.GetLength(2); layer++)
                     {
-                        if (x >= 0 && x < alphaMapWidth && z >= 0 && z < alphaMapHeight)
+                        if (layer == pathTextureIndex)
                         {
-                            // Distance from path center
-                            float dist = Vector2.Distance(new Vector2(x, z), new Vector2(alphaX, alphaZ));
-                            if (dist <= radius)
-                            {
-                                for (int j = 0; j < terrainData.alphamapLayers; j++)
-                                {
-                                    alphaMap[z, x, j] = j == pathTextureIndex ? 1.0f : 0.0f;
-                                }
-                            }
+                            alphamaps[newZ, newX, layer] = 1; // Set the selected texture for the path
+                        }
+                        else
+                        {
+                            alphamaps[newZ, newX, layer] = 0; // Clear other textures
                         }
                     }
                 }
             }
         }
 
-        terrainData.SetAlphamaps(0, 0, alphaMap);
+        // Apply the modified alphamap back to the terrain
+        terrainData.SetAlphamaps(0, 0, alphamaps);
+
+        Debug.Log("Path generation completed");
+        yield return null;
     }
 
-    private int GetUniqueTextureIndex(UnityEngine.TerrainData terrainData)
+    // Generate random points for the path that starts from the left (X-axis movement)
+    private List<List<Vector2>> GenerateSplitPathsInXDirection(int terrainWidth, int terrainLength)
     {
-        int textureCount = terrainData.alphamapLayers;
-        HashSet<int> usedTextures = new HashSet<int>();
+        List<List<Vector2>> splitPaths = new List<List<Vector2>>();
+        List<Vector2> mainPath = new List<Vector2>();
 
-        for (int x = 0; x < terrainData.alphamapWidth; x++)
+        Vector2 startPoint = new Vector2(0, Random.Range(terrainLength / 4, terrainLength * 3 / 4)); // Start randomly along the Z-axis
+        mainPath.Add(startPoint);
+
+        // Generate points along the X axis with random splits, extending to the edge
+        for (int x = 10; x < terrainWidth; x += Random.Range(20, 40)) // Adjust spacing
         {
-            for (int z = 0; z < terrainData.alphamapHeight; z++)
+            float randomZ = Random.Range(terrainLength / 4, terrainLength * 3 / 4); // Move along Z-axis
+            mainPath.Add(new Vector2(x, randomZ));
+
+            // Random chance to split the path
+            if (Random.Range(0, 100) < splitChance)
             {
-                for (int layer = 0; layer < textureCount; layer++)
+                List<Vector2> splitPath = new List<Vector2>(mainPath); // Start the split path from the main path
+                for (int sx = x; sx < terrainWidth; sx += Random.Range(20, 40))
                 {
-                    if (terrainData.GetAlphamaps(x, z, 1, 1)[0, 0, layer] > 0.5f)
-                    {
-                        usedTextures.Add(layer);
-                    }
+                    // Spread out the split path more as it progresses
+                    float spread = (sx - x) * splitSpread / terrainWidth; // Adjust spread
+                    float splitZ = Mathf.Clamp(randomZ + Random.Range(-spread, spread), 0, terrainLength); // Move along Z-axis with spread
+                    splitPath.Add(new Vector2(sx, splitZ));
+                }
+                splitPaths.Add(splitPath);
+            }
+        }
+
+        // Ensure main path reaches the end of the X axis
+        mainPath.Add(new Vector2(terrainWidth - 1, Random.Range(terrainLength / 4, terrainLength * 3 / 4)));
+        splitPaths.Insert(0, mainPath);
+
+        return splitPaths;
+    }
+
+    // Generate random points for the path that starts from the bottom (Z-axis movement)
+    private List<List<Vector2>> GenerateSplitPathsInZDirection(int terrainWidth, int terrainLength)
+    {
+        List<List<Vector2>> splitPaths = new List<List<Vector2>>();
+        List<Vector2> mainPath = new List<Vector2>();
+
+        Vector2 startPoint = new Vector2(Random.Range(terrainWidth / 4, terrainWidth * 3 / 4), 0); // Start randomly along the X-axis
+        mainPath.Add(startPoint);
+
+        // Generate points along the Z axis with random splits, extending to the edge
+        for (int z = 10; z < terrainLength; z += Random.Range(20, 40)) // Adjust spacing
+        {
+            float randomX = Random.Range(terrainWidth / 4, terrainWidth * 3 / 4); // Move along X-axis
+            mainPath.Add(new Vector2(randomX, z));
+
+            // Random chance to split the path
+            if (Random.Range(0, 100) < splitChance)
+            {
+                List<Vector2> splitPath = new List<Vector2>(mainPath); // Start the split path from the main path
+                for (int sz = z; sz < terrainLength; sz += Random.Range(20, 40))
+                {
+                    // Spread out the split path more as it progresses
+                    float spread = (sz - z) * splitSpread / terrainLength; // Adjust spread
+                    float splitX = Mathf.Clamp(randomX + Random.Range(-spread, spread), 0, terrainWidth); // Move along X-axis with spread
+                    splitPath.Add(new Vector2(splitX, sz));
+                }
+                splitPaths.Add(splitPath);
+            }
+        }
+
+        // Ensure main path reaches the end of the Z axis
+        mainPath.Add(new Vector2(Random.Range(terrainWidth / 4, terrainWidth * 3 / 4), terrainLength - 1));
+        splitPaths.Insert(0, mainPath);
+
+        return splitPaths;
+    }
+
+    // Smooth the path using Bezier curve interpolation
+    private List<Vector2> SmoothBezierPath(List<Vector2> pathPoints, int smoothness)
+    {
+        List<Vector2> smoothPath = new List<Vector2>();
+
+        // For each segment, create a Bezier curve between two points
+        for (int i = 0; i < pathPoints.Count - 2; i += 2)
+        {
+            Vector2 p0 = pathPoints[i];
+            Vector2 p1 = pathPoints[i + 1];
+            Vector2 p2 = pathPoints[i + 2];
+
+            for (int t = 0; t <= smoothness; t++)
+            {
+                float u = t / (float)smoothness;
+                Vector2 point = (1 - u) * (1 - u) * p0 + 2 * (1 - u) * u * p1 + u * u * p2; // Quadratic Bezier formula
+                smoothPath.Add(point);
+            }
+        }
+
+        return smoothPath;
+    }
+
+    // Helper function to find the texture index in the terrain's splatmap or add it if not found
+    private int GetTextureIndexOrAdd(Terrain terrain, Texture2D targetTexture)
+    {
+        TerrainLayer[] terrainLayers = terrain.terrainData.terrainLayers;
+
+        // Check the terrain layers for the correct texture
+        for (int i = 0; i < terrainLayers.Length; i++)
+        {
+            if (terrainLayers[i] != null && terrainLayers[i].diffuseTexture == targetTexture)
+            {
+                return i;  // Return the correct index in the terrain layers
+            }
+        }
+
+        // If the texture is not found, add it as a new layer
+        Debug.Log("Adding new texture to terrain layers.");
+        TerrainLayer newLayer = new TerrainLayer();
+        newLayer.diffuseTexture = targetTexture;
+        newLayer.tileSize = new Vector2(10, 10);  // Set the default tile size (adjust as necessary)
+
+        List<TerrainLayer> layerList = new List<TerrainLayer>(terrainLayers);
+        layerList.Add(newLayer);
+
+        terrain.terrainData.terrainLayers = layerList.ToArray();  // Update the terrain layers
+
+        // Return the index of the newly added texture
+        return layerList.Count - 1;
+    }
+
+    public override void Clear()
+    {
+        if (terrain == null)
+        {
+            Debug.LogError("No terrain assigned.");
+            return;
+        }
+
+        Debug.Log("Clearing path data");
+
+        UnityEngine.TerrainData terrainData = terrain.terrainData;
+
+        int terrainWidth = terrainData.alphamapWidth;
+        int terrainLength = terrainData.alphamapHeight;
+
+        float[,,] originalAlphamaps = new float[terrainLength, terrainWidth, terrainData.alphamapLayers];
+
+        // Reset to default (assuming first texture is the base texture)
+        for (int z = 0; z < terrainLength; z++)
+        {
+            for (int x = 0; x < terrainWidth; x++)
+            {
+                for (int layer = 0; layer < terrainData.alphamapLayers; layer++)
+                {
+                    originalAlphamaps[z, x, layer] = (layer == 0) ? 1 : 0;
                 }
             }
         }
 
-        int randomTextureIndex;
-        int maxAttempts = 100;
-        for (int i = 0; i < maxAttempts; i++)
-        {
-            randomTextureIndex = Random.Range(0, textureCount);
-            if (!usedTextures.Contains(randomTextureIndex))
-            {
-                return randomTextureIndex;
-            }
-        }
+        terrainData.SetAlphamaps(0, 0, originalAlphamaps);
 
-        return 0;
+        Debug.Log("Path data cleared.");
     }
 }
-
-
-
-
-// using System.Collections.Generic;
-// using UnityEditor;
-// using UnityEngine;
-
-// namespace CurvedPathGenerator
-// {
-
-//     [RequireComponent(typeof(MeshFilter))]
-//     [RequireComponent(typeof(MeshRenderer))]
-//     [System.Serializable]
-//     public class PathGenerator : MonoBehaviour
-//     {
-//         public bool IsClosed = false;
-
-//         public bool IsLivePath = false;
-
-//         public bool IsShowingIcons = true;
-
-//         public int PathDensity = 5;
-
-//         public int EditMode = 0;
-
-//         public bool CreateMeshFlag = true;
-
-//         public float LineMehsWidth = 0.2f;
-
-//         public float LineOpacity = 0.7f;
-
-//         public float LineSpeed = 10f;
-
-//         public float LineTiling = 20f;
-
-//         public float LineFilling = 1f;
-
-//         public int LineRenderQueue = 2500;
-
-//         public Texture2D LineTexture;
-
-//         public int NodeCount = 6; 
-//         public float PathLength = 1024f; 
-//         public float AngleVarianceX = 30f; // Random angle variance for X axis
-//         public float AngleVarianceY = 30f; // Random angle variance for Y axis
-//         public float NoiseScale = 0.1f; 
-//         public float HeightNoiseScale = 0.05f;
-
-//         public List<Vector3> PathList = new List<Vector3>();
-
-//         public List<float> PathLengths = new List<float>();
-
-//         [SerializeField]
-//         public List<Vector3> NodeList = new List<Vector3>();
-
-
-//         [SerializeField]
-//         public List<Vector3> AngleList = new List<Vector3>();
-
- 
-//         public List<Vector3> NodeList_World = new List<Vector3>();
-
-
-//         public List<Vector3> AngleList_World = new List<Vector3>();
-
-//         private Terrain terrain;
-
-//         // Generates nodes with random heights and angles using Perlin noise
-//         public void GenerateRandomNodesAndAngles()
-//         {
-//             NodeList.Clear();
-//             AngleList.Clear();
-
-//             Vector3 lastNode = Vector3.zero;
-
-//             for (int i = 0; i < NodeCount; i++)
-//             {
-//                 // Generate a random position using Perlin noise for smooth transitions
-//                 float randomX = Mathf.PerlinNoise(i * NoiseScale, 0f) * PathLength;
-//                 float randomZ = Mathf.PerlinNoise(0f, i * NoiseScale) * PathLength;
-
-//                 // Sample the terrain's height at the random X, Z position
-//                 float terrainHeight = SampleTerrainHeight(randomX, randomZ);
-
-//                 Vector3 newNode = new Vector3(randomX, terrainHeight, randomZ);
-//                 NodeList.Add(newNode);
-
-//                 // Randomize the angles for both X and Y axes
-//                 float randomAngleX = Random.Range(-AngleVarianceX, AngleVarianceX);
-//                 float randomAngleY = Random.Range(-AngleVarianceY, AngleVarianceY);
-//                 AngleList.Add(new Vector3(randomAngleX, randomAngleY, 0));
-
-//                 lastNode = newNode;
-//             }
-
-//             NodeList_World = NodeList; 
-//             AngleList_World = AngleList; 
-//         }
-//         private float SampleTerrainHeight(float x, float z)
-//         {
-//             if (terrain == null)
-//                 return 0f;
-
-//             Vector3 terrainPos = terrain.transform.position;
-//             float normalizedX = (x - terrainPos.x) / terrain.terrainData.size.x;
-//             float normalizedZ = (z - terrainPos.z) / terrain.terrainData.size.z;
-
-//             return terrain.SampleHeight(new Vector3(x, 0, z)) + terrainPos.y;
-//         }
-
-//         public void UpdatePath()
-//         {
-//             if (PathDensity < 2)
-//             {
-// #if UNITY_EDITOR
-//                 Debug.LogError("Path Density is too small. (must >= 2)");
-//                 UnityEditor.EditorApplication.isPlaying = false;
-// #elif UNITY_WEBPLAYER
-//                 Application.OpenURL("about:blank");
-// #else
-//                 Application.Quit();
-// #endif
-//                 return; // Exit if path density is too low
-//             }
-
-//             try
-//             {
-//                 PathList = new List<Vector3>();
-//                 PathLengths = new List<float>();
-
-//                 for (int i = 0; i < NodeList_World.Count; i++)
-//                 {
-//                     Vector3 startPoint = NodeList_World[i];
-//                     Vector3 middlePoint = new Vector3();
-//                     Vector3 endPoint = new Vector3();
-//                     if (i == NodeList_World.Count - 1)
-//                     {
-//                         if (IsClosed)
-//                         {
-//                             middlePoint = AngleList_World[i];
-//                             endPoint = NodeList_World[0];
-//                         }
-//                         else
-//                         {
-//                             break;
-//                         }
-//                     }
-//                     else
-//                     {
-//                         middlePoint = AngleList_World[i];
-//                         endPoint = NodeList_World[i + 1];
-//                     }
-
-//                     // Generate the Bezier curve with path density
-//                     for (int j = 0; j < PathDensity; j++)
-//                     {
-//                         float t = (float)j / PathDensity;
-//                         Vector3 curve = (1f - t) * (1f - t) * startPoint +
-//                                         2 * (1f - t) * t * middlePoint +
-//                                         t * t * endPoint;
-//                         PathList.Add(curve);
-
-//                         if (PathList.Count > 1)
-//                         {
-//                             float length = (PathList[PathList.Count - 2] - curve).magnitude;
-//                             PathLengths.Add(PathLengths.Count == 0 ? length : PathLengths[PathLengths.Count - 1] + length);
-//                         }
-//                     }
-//                 }
-
-//                 if (IsClosed)
-//                     PathList.Add(NodeList_World[0]);
-//                 else
-//                     PathList.Add(NodeList_World[NodeList_World.Count - 1]);
-
-//                 CreateMesh(PathList);
-//             }
-//             catch (System.Exception e)
-//             {
-//                 Debug.LogError($"Path generation failed: {e}");
-//             }
-//         }
-
-
-//         public float GetLength()
-//         {
-//             if ( PathLengths != null || PathLengths.Count > 0 )
-//             {
-//                 return PathLengths[PathLengths.Count - 1];
-//             }
-//             else
-//             {
-//                 return 0;
-//             }
-//         }
-
-
-//         private void Update()
-//         {
-//             if ( IsLivePath )
-//             {
-//                 UpdatePath();
-//             }
-//         }
-
-
-//         private void CreateMesh(List<Vector3> pathVec)
-//         {
-//             if ( !CreateMeshFlag )
-//             {
-//                 return;
-//             }
-
-//             Quaternion rotation = transform.rotation;
-//             Matrix4x4 m_reverse = Matrix4x4.Rotate(Quaternion.Inverse(rotation));
-//             int verNum = 2 * pathVec.Count;
-//             int triNum = 6 * ( pathVec.Count - 1 );
-//             Vector3[] vertices = new Vector3[verNum];
-//             int[] triangles = new int[triNum];
-//             Vector2[] uvs = new Vector2[verNum];
-
-//             float MaxLength = 0, currentLength = 0;
-//             for ( int i = 1 ; i < pathVec.Count ; i++ )
-//             {
-//                 MaxLength += ( pathVec[i] - pathVec[i - 1] ).magnitude;
-//             }
-
-//             for ( int i = 0 ; i < pathVec.Count - 1 ; i++ )
-//             {
-//                 Vector3 dir = ( pathVec[i + 1] - pathVec[i] ).normalized;
-//                 Vector3 new_dir1 = new Vector3(dir.z, 0, -dir.x);
-//                 Vector3 new_dir2 = new Vector3(-dir.z, 0, dir.x);
-
-
-//                 if ( i == 0 )
-//                 {
-//                     vertices[2 * i] = ReverseTransformPoint(pathVec[i] + ( new_dir1 * ( LineMehsWidth / 2 ) ), m_reverse);
-//                     vertices[2 * i + 1] = ReverseTransformPoint(pathVec[i] + ( new_dir2 * ( LineMehsWidth / 2 ) ), m_reverse);
-//                     uvs[2 * i] = new Vector2(0.5f, -0.5f);
-//                     uvs[2 * i + 1] = new Vector2(-0.5f, -0.5f);
-//                 }
-
-//                 else
-//                 {
-//                     currentLength += ( pathVec[i] - pathVec[i - 1] ).magnitude;
-
-//                     vertices[2 * i] = ReverseTransformPoint(pathVec[i] + ( new_dir1 * ( LineMehsWidth / 2 ) ), m_reverse);
-//                     vertices[2 * i + 1] = ReverseTransformPoint(pathVec[i] + ( new_dir2 * ( LineMehsWidth / 2 ) ), m_reverse);
-//                     uvs[2 * i] = new Vector2(0.5f, -0.5f + ( currentLength ) / ( MaxLength ));
-//                     uvs[2 * i + 1] = new Vector2(-0.5f, -0.5f + ( currentLength ) / ( MaxLength ));
-//                 }
-
-
-//                 if ( i == pathVec.Count - 2 )
-//                 {
-//                     vertices[2 * i + 2] = ReverseTransformPoint(pathVec[i + 1] + ( new_dir1 * ( LineMehsWidth / 2 ) ), m_reverse);
-//                     vertices[2 * i + 3] = ReverseTransformPoint(pathVec[i + 1] + ( new_dir2 * ( LineMehsWidth / 2 ) ), m_reverse);
-//                     uvs[2 * i + 2] = new Vector2(0.5f, 0.5f);
-//                     uvs[2 * i + 3] = new Vector2(-0.5f, 0.5f);
-//                 }
-//             }
-
-
-//             for ( int i = 0 ; i < pathVec.Count - 1 ; i++ )
-//             {
-//                 triangles[6 * i] = 2 * i + 3;
-//                 triangles[6 * i + 1] = 2 * i + 2;
-//                 triangles[6 * i + 2] = 2 * i;
-//                 triangles[6 * i + 3] = 2 * i + 3;
-//                 triangles[6 * i + 4] = 2 * i;
-//                 triangles[6 * i + 5] = 2 * i + 1;
-//             }
-
-
-//             MeshFilter PathMesh = transform.GetComponent<MeshFilter>();
-//             Mesh newMesh = new Mesh();
-//             newMesh.vertices = vertices;
-//             newMesh.triangles = triangles;
-//             newMesh.uv = uvs;
-//             newMesh.RecalculateBounds();
-//             newMesh.RecalculateNormals();
-//             PathMesh.mesh = newMesh;
-//         }
-
-
-//         private void OnDrawGizmosSelected()
-//         {
-// #if UNITY_EDITOR
-//             Tools.hidden = ( EditMode != 0 );
-//             if ( IsShowingIcons )
-//             {
-//                 Gizmos.DrawIcon(this.transform.position, "PathGenerator/PG_Anchor.png", true);
-//                 if ( NodeList_World != null && NodeList_World.Count > 0 )
-//                 {
-//                     for ( int i = 0 ; i < NodeList_World.Count ; i++ )
-//                     {
-//                         if ( i == 0 )
-//                         {
-//                             Gizmos.DrawIcon(NodeList_World[i], "PathGenerator/PG_Start.png", ( EditMode != 0 ));
-//                         }
-//                         else if ( !IsClosed && i == NodeList_World.Count - 1 )
-//                         {
-//                             Gizmos.DrawIcon(NodeList_World[i], "PathGenerator/PG_End.png", ( EditMode != 0 ));
-//                         }
-//                         else
-//                         {
-//                             Gizmos.DrawIcon(NodeList_World[i], "PathGenerator/PG_Node.png", ( EditMode != 0 ));
-//                         }
-//                     }
-//                 }
-
-//                 if ( AngleList_World != null && AngleList_World.Count > 0 )
-//                 {
-//                     for ( int i = 0 ; i < AngleList_World.Count ; i++ )
-//                     {
-//                         Gizmos.DrawIcon(AngleList_World[i], "PathGenerator/PG_Handler.png", ( EditMode != 0 ));
-//                     }
-//                 }
-//             }
-// #endif
-//         }
-
-
-//         public void ResetTools()
-//         {
-// #if UNITY_EDITOR
-//             Tools.hidden = false;
-// #endif
-//         }
-//         private Vector3 ReverseTransformPoint(Vector3 points, Matrix4x4 m_reverse)
-//         {
-//             Vector3 result = points;
-
-//             result -= transform.position;                   
-//             result = m_reverse.MultiplyPoint3x4(result);    
-//             result = new Vector3(                           
-//                 result.x / transform.lossyScale.x,
-//                 result.y / transform.lossyScale.y,
-//                 result.z / transform.lossyScale.z
-//             );
-//             return result;
-//         }
-//     }
-// }
