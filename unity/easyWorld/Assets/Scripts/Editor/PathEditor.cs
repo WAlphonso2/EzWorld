@@ -10,66 +10,79 @@ public class PathEditor : Editor
     {
         PathGenerator gen = (PathGenerator)target;
 
-        // Draw default inspector properties (like path width, density, etc.)
-        DrawDefaultInspector();
+        // Draw Terrain field (drag and drop the terrain from the scene)
+        gen.terrain = (Terrain)EditorGUILayout.ObjectField("Terrain", gen.terrain, typeof(Terrain), true);
+
+        // Draw pathWidth field
+        gen.pathWidth = EditorGUILayout.IntField("Path Width", gen.pathWidth);
 
         GUILayout.Space(10);
 
-        if (gen.PathTextures == null)
-        {
-            gen.PathTextures = new List<Texture2D>(); // Initialize the texture list if null
-        }
-
-        // Label for texture management
-        EditorGUILayout.LabelField("Path Textures", EditorStyles.boldLabel);
-
-        // Loop through each texture in the list
-        for (int i = 0; i < gen.PathTextures.Count; i++)
-        {
-            EditorGUILayout.BeginHorizontal();
-
-            // Allow the user to select a texture from the project
-            gen.PathTextures[i] = (Texture2D)EditorGUILayout.ObjectField($"Texture {i + 1}", gen.PathTextures[i], typeof(Texture2D), false);
-
-            // Button to remove the texture
-            if (GUILayout.Button("Remove", GUILayout.Width(60)))
-            {
-                gen.PathTextures.RemoveAt(i);
-                i--;  // Decrement the index to handle the removal
-            }
-
-            EditorGUILayout.EndHorizontal();
-        }
-
-        // Button to add a new texture slot
-        if (GUILayout.Button("Add Texture"))
-        {
-            gen.PathTextures.Add(null);  // Add a new empty texture slot
-        }
+        gen.splitChance = EditorGUILayout.IntField("split Chance", gen.splitChance);
 
         GUILayout.Space(10);
 
-        // Button to start generating the paths
-        if (gen.PathTextures.Count > 0)
+        // Allow the user to select the path texture directly in the editor
+        gen.selectedTexture = (Texture2D)EditorGUILayout.ObjectField("Select Path Texture", gen.selectedTexture, typeof(Texture2D), false);
+
+        GUILayout.Space(10);
+
+        // Draw curveSmoothness field
+        gen.curveSmoothness = EditorGUILayout.IntField("Path Curve Smoothness", gen.curveSmoothness);
+
+        GUILayout.Space(10);
+
+        // Generate paths button (uses user inputs for path generation)
+        if (gen.selectedTexture != null && gen.terrain != null)
         {
             if (GUILayout.Button("Generate Paths"))
             {
-                // Prepare the WorldInfo object (assuming your PathGenerator uses this for terrain data)
+                // Gather input data for WorldInfo from the editor fields
                 WorldInfo worldInfo = new WorldInfo
                 {
                     terrainData = new TerrainData
                     {
-                        // Assuming your height map and terrain data is populated elsewhere
+                        heightsGeneratorData = new HeightsGeneratorData
+                        {
+                            width = gen.terrain.terrainData.heightmapResolution,
+                            height = gen.terrain.terrainData.heightmapResolution,
+                            depth = 100  // You can allow user input for this as well if necessary
+                        },
+                        texturesGeneratorDataList = new List<TexturesGeneratorData>() // Ensure this is initialized
                     },
-                    heightMap = Terrain.activeTerrain.terrainData.GetHeights(0, 0, Terrain.activeTerrain.terrainData.heightmapResolution, Terrain.activeTerrain.terrainData.heightmapResolution)
+                    heightMap = gen.terrain.terrainData.GetHeights(0, 0,
+                        gen.terrain.terrainData.heightmapResolution,
+                        gen.terrain.terrainData.heightmapResolution)
                 };
+
+                // Add the selected texture to the texturesGeneratorDataList
+                worldInfo.terrainData.texturesGeneratorDataList.Add(new TexturesGeneratorData
+                {
+                    texture = gen.selectedTexture.name,  // Use the selected texture's name
+                    heightCurve = "linear",
+                    tileSizeX = 10,
+                    tileSizeY = 10
+                });
 
                 // Start the path generation coroutine
                 EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
             }
         }
+        else
+        {
+            // Show warnings if terrain or texture is not selected
+            if (gen.terrain == null)
+            {
+                EditorGUILayout.HelpBox("Please assign a Terrain.", MessageType.Warning);
+            }
 
-        // Button to clear paths
+            if (gen.selectedTexture == null)
+            {
+                EditorGUILayout.HelpBox("Please select a Texture for the path.", MessageType.Warning);
+            }
+        }
+
+        // Clear paths button
         if (GUILayout.Button("Clear Paths"))
         {
             gen.Clear();

@@ -30,11 +30,10 @@ public class TerrainGenerator : Generator
         // does order matter here or can they all be run in parallel?
         yield return StartCoroutine(heightsGenerator.Generate(worldInfo));
         yield return StartCoroutine(texturesGenerator.Generate(worldInfo));
+        yield return StartCoroutine(pathGenerator.Generate(worldInfo));
         yield return StartCoroutine(treeGenerator.Generate(worldInfo));
         yield return StartCoroutine(grassGenerator.Generate(worldInfo));
         yield return StartCoroutine(waterGenerator.Generate(worldInfo));
-        yield return StartCoroutine(pathGenerator.Generate(worldInfo));
-
         yield return StartCoroutine(SwitchToGamePlayMode());
     }
 
