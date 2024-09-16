@@ -55,7 +55,7 @@ public class TreesEditor : Editor
                 // Create a WorldInfo object to pass to the generator
                 WorldInfo worldInfo = new WorldInfo
                 {
-                    terrainData = new TerrainData
+                    terrainData = new CustomTerrainData
                     {
                         treeGeneratorData = new TreeGeneratorData
                         {

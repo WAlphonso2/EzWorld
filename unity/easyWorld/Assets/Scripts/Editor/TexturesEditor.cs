@@ -79,7 +79,7 @@ public class TexturesEditor : Editor
 	{
 		WorldInfo worldInfo = new WorldInfo
 		{
-			terrainData = new TerrainData
+			terrainData = new CustomTerrainData
 			{
 				texturesGeneratorDataList = new List<TexturesGeneratorData>()
 			}

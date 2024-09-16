@@ -22,6 +22,10 @@ public class PathEditor : Editor
 
         GUILayout.Space(10);
 
+        gen.splitSpread = EditorGUILayout.IntField("split Spread", (int)gen.splitSpread);
+
+        GUILayout.Space(10);
+
         // Allow the user to select the path texture directly in the editor
         gen.selectedTexture = (Texture2D)EditorGUILayout.ObjectField("Select Path Texture", gen.selectedTexture, typeof(Texture2D), false);
 
@@ -40,15 +44,15 @@ public class PathEditor : Editor
                 // Gather input data for WorldInfo from the editor fields
                 WorldInfo worldInfo = new WorldInfo
                 {
-                    terrainData = new TerrainData
+                    terrainData = new CustomTerrainData
                     {
                         heightsGeneratorData = new HeightsGeneratorData
                         {
                             width = gen.terrain.terrainData.heightmapResolution,
                             height = gen.terrain.terrainData.heightmapResolution,
-                            depth = 100  // You can allow user input for this as well if necessary
+                            depth = 100
                         },
-                        texturesGeneratorDataList = new List<TexturesGeneratorData>() // Ensure this is initialized
+                        texturesGeneratorDataList = new List<TexturesGeneratorData>() 
                     },
                     heightMap = gen.terrain.terrainData.GetHeights(0, 0,
                         gen.terrain.terrainData.heightmapResolution,
@@ -58,7 +62,7 @@ public class PathEditor : Editor
                 // Add the selected texture to the texturesGeneratorDataList
                 worldInfo.terrainData.texturesGeneratorDataList.Add(new TexturesGeneratorData
                 {
-                    texture = gen.selectedTexture.name,  // Use the selected texture's name
+                    texture = gen.selectedTexture.name, 
                     heightCurve = "linear",
                     tileSizeX = 10,
                     tileSizeY = 10

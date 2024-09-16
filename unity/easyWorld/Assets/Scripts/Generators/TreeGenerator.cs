@@ -25,7 +25,6 @@ namespace Assets.Scripts.MapGenerator.Generators
         public bool AutoUpdate;
 
         public List<GameObject> TreePrototypes;
-
         public override IEnumerator Generate(WorldInfo worldInfo)
         {
             LoadSettings(worldInfo.terrainData.treeGeneratorData);
@@ -61,10 +60,12 @@ namespace Assets.Scripts.MapGenerator.Generators
                      Lacunarity = Lacunarity
             }.Generate(out maxLocalNoiseHeight, out minLocalNoiseHeight);
 
+            // In the Generate function
             for (int x = 0; x < terrainData.alphamapWidth; x++)
             {
                 for (int y = 0; y < terrainData.alphamapHeight; y++)
                 {
+
                     float height = terrainData.GetHeight(x, y);
                     float heightScaled = height / terrainData.size.y;
                     float xScaled = (x + Random.Range(-1f, 1f)) / terrainData.alphamapWidth;
@@ -76,11 +77,11 @@ namespace Assets.Scripts.MapGenerator.Generators
 
                     if
                         (
-                         noiseStep < Density &&
-                         noiseVal < IslandSize &&
-                         steepness < MaxSteepness &&
-                         height > MinLevel &&
-                         height < MaxLevel
+                        noiseStep < Density &&
+                        noiseVal < IslandSize &&
+                        steepness < MaxSteepness &&
+                        height > MinLevel &&
+                        height < MaxLevel
                         )
                         {
                             treePos.Add(new Vector3(xScaled, heightScaled, yScaled));
