@@ -156,6 +156,9 @@ def parse_description():
     - Rz: The rotation of the object around the z axis, 0<Rz<360
     - scale: The scale of the model size, as a multiple of the model, 0 < scale < 4, typically 1
 
+    DayNightGenerator"
+    - timeOfDay is a floating point value represenging the time of day. Its value should be between 0 and 24 inclusive with 0 and 24 representing 12:00am, 12 representing 12:00pm and so on. 
+
     Make sure you return the result in JSON format like this:   
     {{
         "terrainsData": [
@@ -235,6 +238,9 @@ def parse_description():
         }},
         ...
     ]
+    "dayNightGeneratorData": {{
+            "timeOfDay: float
+        }}
     }}
 
 
