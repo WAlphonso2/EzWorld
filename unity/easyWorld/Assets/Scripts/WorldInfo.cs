@@ -5,6 +5,7 @@ using UnityEngine;
 public class WorldInfo
 {
     public TerrainData terrainData;
+    public DayNightGeneratorData dayNightGeneratorData;
 }
 
 [System.Serializable]
@@ -89,4 +90,10 @@ public class WaterGeneratorData
     public Vector2 riverWidthRange = new(1024, 1024);
     public bool randomize = true;
     public bool autoUpdate = true;
+}
+
+[System.Serializable]
+public class DayNightGeneratorData
+{
+    public float timeOfDay = 12;
 }

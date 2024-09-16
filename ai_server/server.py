@@ -133,6 +133,9 @@ def parse_description():
     - river width range x and y, x should be between 500 and 2000, y should be between 500 and 2000 
     - randomize and autoUpdate should be true or false.
 
+    DayNightGenerator"
+    - timeOfDay is a floating point value represenging the time of day. Its value should be between 0 and 24 inclusive with 0 and 24 representing 12:00am, 12 representing 12:00pm and so on. 
+
     Make sure you return the result in JSON format like this:   
     {{
         "terrainData":{{
@@ -203,6 +206,9 @@ def parse_description():
                 "randomize": boolean,
                 "autoUpdate": boolean
             }}
+        }}
+        "dayNightGeneratorData": {{
+            "timeOfDay: float
         }}
     }}
 
