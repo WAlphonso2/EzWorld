@@ -4,12 +4,13 @@ using System.Collections;
 
 public class PathGenerator : Generator
 {
-    public Terrain terrain; // Drag and drop the terrain in the Inspector
-    public int pathWidth = 10;  // Width of the path
-    public Texture2D selectedTexture; // Texture selected from the editor
-    public int curveSmoothness = 75; // Number of points to smooth the path
-    public int splitChance = 20; // Percentage chance to split the path at each point
-    public float splitSpread = 30f; // How much the split paths should spread out
+    public Terrain terrain; 
+    public int pathWidth = 10;
+    public Texture2D selectedTexture;
+    public int curveSmoothness = 75;
+    public int splitChance = 20;
+    public float splitSpread = 30f;
+    public HashSet<Vector2Int> PathPoints { get; private set; } = new HashSet<Vector2Int>();
 
     public override IEnumerator Generate(WorldInfo worldInfo)
     {
@@ -28,7 +29,6 @@ public class PathGenerator : Generator
         Debug.Log("Generating paths on terrain");
 
         UnityEngine.TerrainData terrainData = terrain.terrainData;
-
         int pathTextureIndex = GetTextureIndexOrAdd(terrain, selectedTexture);
 
         if (pathTextureIndex == -1)
@@ -38,16 +38,11 @@ public class PathGenerator : Generator
         }
 
         int terrainWidth = terrainData.alphamapWidth;
-        int terrainLength = terrainData.alphamapHeight; // Z-axis for length of the terrain
-
-        // Generate the first path moving in X direction
+        int terrainLength = terrainData.alphamapHeight;
         List<List<Vector2>> xDirectionPaths = GenerateSplitPathsInXDirection(terrainWidth, terrainLength);
-
-        // Generate the second path moving in Z direction
         List<List<Vector2>> zDirectionPaths = GenerateSplitPathsInZDirection(terrainWidth, terrainLength);
-
-        // Combine both sets of paths
         List<Vector2> smoothPathPoints = new List<Vector2>();
+
         foreach (var path in xDirectionPaths)
         {
             smoothPathPoints.AddRange(SmoothBezierPath(path, curveSmoothness));
@@ -57,44 +52,114 @@ public class PathGenerator : Generator
             smoothPathPoints.AddRange(SmoothBezierPath(path, curveSmoothness));
         }
 
-        // Get the existing alphamap
         float[,,] alphamaps = terrainData.GetAlphamaps(0, 0, terrainWidth, terrainLength);
-
-        // Apply the paths on the terrain
         foreach (Vector2 point in smoothPathPoints)
         {
             int x = Mathf.RoundToInt(point.x);
-            int z = Mathf.RoundToInt(point.y); // Z-axis movement
+            int z = Mathf.RoundToInt(point.y);
 
-            // Draw the path on the alphamap
             for (int i = -pathWidth / 2; i < pathWidth / 2; i++)
             {
                 for (int j = -pathWidth / 2; j < pathWidth / 2; j++)
                 {
                     int newX = Mathf.Clamp(x + i, 0, terrainWidth - 1);
-                    int newZ = Mathf.Clamp(z + j, 0, terrainLength - 1); // Z-axis clamp
+                    int newZ = Mathf.Clamp(z + j, 0, terrainLength - 1);
 
                     for (int layer = 0; layer < alphamaps.GetLength(2); layer++)
                     {
                         if (layer == pathTextureIndex)
                         {
-                            alphamaps[newZ, newX, layer] = 1; // Set the selected texture for the path
+                            alphamaps[newZ, newX, layer] = 1;
                         }
                         else
                         {
-                            alphamaps[newZ, newX, layer] = 0; // Clear other textures
+                            alphamaps[newZ, newX, layer] = 0;
                         }
                     }
+
+                    PathPoints.Add(new Vector2Int(newX, newZ)); 
                 }
             }
         }
-
-        // Apply the modified alphamap back to the terrain
         terrainData.SetAlphamaps(0, 0, alphamaps);
-
         Debug.Log("Path generation completed");
+
+        // Call ClearVegetation after path generation
+        ClearVegetationOnPath(terrainData);
+
         yield return null;
     }
+
+    private void ClearVegetationOnPath(UnityEngine.TerrainData terrainData)
+    {
+        // Scale factors for converting world position (PathPoints) to detail layer resolution
+        float detailResolutionScaleX = terrainData.detailWidth / (float)terrainData.alphamapWidth;
+        float detailResolutionScaleY = terrainData.detailHeight / (float)terrainData.alphamapHeight;
+
+        // Iterate over all detail layers (grass)
+        for (int layer = 0; layer < terrainData.detailPrototypes.Length; layer++)
+        {
+            // Get the current detail layer data (grass layer)
+            int[,] detailLayer = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, layer);
+
+            // Iterate over each path point and clear grass from the path
+            foreach (Vector2Int pathPoint in PathPoints)
+            {
+                // Scale path point to detail resolution
+                int detailX = Mathf.RoundToInt(pathPoint.x * detailResolutionScaleX);
+                int detailY = Mathf.RoundToInt(pathPoint.y * detailResolutionScaleY);
+
+                // Ensure the points are within the detail layer bounds
+                if (detailX >= 0 && detailX < terrainData.detailWidth && detailY >= 0 && detailY < terrainData.detailHeight)
+                {
+                    // Clear grass (set detail to 0) at this point
+                    detailLayer[detailY, detailX] = 0;
+                }
+            }
+
+            // Set the modified detail layer back to the terrain data
+            terrainData.SetDetailLayer(0, 0, layer, detailLayer); 
+        }
+
+        // Remove trees from tree instances
+        List<TreeInstance> remainingTrees = new List<TreeInstance>();
+        float treeClearDistance = (pathWidth * 2)- 1; 
+
+        foreach (var tree in terrainData.treeInstances)
+        {
+            // Convert tree position to Vector2Int
+            Vector2Int treePosition = new Vector2Int((int)(tree.position.x * terrainData.size.x), (int)(tree.position.z * terrainData.size.z));
+
+            bool isFarFromPath = true;
+
+            // Check if the tree is within the "clear zone" around the path
+            foreach (Vector2Int pathPoint in PathPoints)
+            {
+                float distanceToPath = Vector2Int.Distance(treePosition, pathPoint);
+                
+                // If the tree is within the clear distance, mark it to be removed
+                if (distanceToPath <= treeClearDistance)
+                {
+                    isFarFromPath = false;
+                    break;
+                }
+            }
+
+            // If the tree is far enough from the path, keep it
+            if (isFarFromPath)
+            {
+                remainingTrees.Add(tree);
+            }
+        }
+
+        terrainData.treeInstances = remainingTrees.ToArray();
+
+        Debug.Log("Vegetation (grass and trees) on path cleared.");
+    }
+
+
+
+
 
     // Generate random points for the path that starts from the left (X-axis movement)
     private List<List<Vector2>> GenerateSplitPathsInXDirection(int terrainWidth, int terrainLength)

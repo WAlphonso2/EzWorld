@@ -19,8 +19,8 @@ namespace Assets.Scripts.MapGenerator.Generators
         public float MaxSteepness = 70;
         [Range(-1, 1)]
         public float IslandSize = 0;
-        [Range(1, 1000)]  // Increased range to allow for higher density
-        public int Density = 1000;  // Default density set to a higher value
+        [Range(0, 1)]
+        public float Density = 0.5f;
         public bool Randomize;
         public bool AutoUpdate;
 
@@ -43,7 +43,12 @@ namespace Assets.Scripts.MapGenerator.Generators
                     prototypeTexture = g,
                     renderMode = DetailRenderMode.GrassBillboard,
                     healthyColor = Color.green,
-                    dryColor = Color.yellow
+                    dryColor = Color.yellow,
+                    // Set the height for short and tall grass, with most grass being shorter
+                    minHeight = 0.2f, 
+                    maxHeight = 1.0f, 
+                    minWidth = 0.2f,
+                    maxWidth = 1f
                 };
                 detailPrototypes.Add(detailPrototype);
             }
@@ -51,50 +56,42 @@ namespace Assets.Scripts.MapGenerator.Generators
             UnityEngine.TerrainData terrainData = Terrain.activeTerrain.terrainData;
             terrainData.detailPrototypes = detailPrototypes.ToArray();
 
-            // Set a high detail resolution for denser grass placement
-            int detailResolution = 1024;
-            terrainData.SetDetailResolution(detailResolution, 8);
+            terrainData.SetDetailResolution(terrainData.alphamapWidth, 8);
 
-            // Generate Perlin noise map for grass placement
             float[,] noiseMap = new PerlinMap()
             {
-                Size = terrainData.detailWidth,
+                Size = terrainData.alphamapWidth,
                 Octaves = Octaves,
                 Scale = Scale,
                 Offset = Offset,
                 Persistance = Persistence,
                 Lacunarity = Lacunarity
-            }.Generate();
-
-            // Grass counter to track the number of grass instances generated
-            int grassCount = 0;
-
-            // Adjust this multiplier to control how much noise affects the grass placement
-            float noiseInfluenceMultiplier = Mathf.Lerp(1f, 0f, Density / 1000f);  // Less noise influence at max density
+            }.Generate(out float maxLocalNoiseHeight, out float minLocalNoiseHeight);
 
             for (int i = 0; i < terrainData.detailPrototypes.Length; i++)
             {
-                int[,] detailLayer = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, i);
+                int[,] detailLayer = new int[terrainData.detailWidth, terrainData.detailHeight];
 
-                for (int x = 0; x < terrainData.detailWidth; x++)
+                for (int x = 0; x < terrainData.alphamapWidth; x++)
                 {
-                    for (int y = 0; y < terrainData.detailHeight; y++)
+                    for (int y = 0; y < terrainData.alphamapHeight; y++)
                     {
                         float height = terrainData.GetHeight(x, y);
-                        float xScaled = (x + Random.Range(-1f, 1f)) / terrainData.detailWidth;
-                        float yScaled = (y + Random.Range(-1f, 1f)) / terrainData.detailHeight;
-                        float steepness = terrainData.GetSteepness(xScaled, yScaled);
-                        float noiseValue = noiseMap[x, y] * noiseInfluenceMultiplier;
+                        float steepness = terrainData.GetSteepness(x / (float)terrainData.alphamapWidth, y / (float)terrainData.alphamapHeight);
+                        float noiseValue = noiseMap[x, y];
 
-                        // Adjust grass placement conditions for high density
-                        if ((noiseValue < IslandSize || Density == 1000) && steepness < MaxSteepness && height > MinLevel && height < MaxLevel)
+                        // Check grass placement conditions
+                        if (noiseValue < IslandSize && steepness < MaxSteepness && height > MinLevel && height < MaxLevel)
                         {
-                            detailLayer[x, y] = Mathf.Clamp(Density, 1, 1000);
-                            grassCount++;  // Count each grass instance placed
+                            if (Random.Range(0f, 1f) < Density)
+                            {
+                                // Set the detailLayer at this point to max grass density
+                                detailLayer[x, y] = Mathf.RoundToInt(Density * 1000); // Max density
+                            }
                         }
                         else
                         {
-                            detailLayer[x, y] = 0;  // No grass if conditions aren't met
+                            detailLayer[x, y] = 0; // No grass
                         }
                     }
                 }
@@ -102,15 +99,12 @@ namespace Assets.Scripts.MapGenerator.Generators
                 terrainData.SetDetailLayer(0, 0, i, detailLayer);
             }
 
-            // Log the number of grass patches generated
-            Debug.Log(grassCount + " grass patches were generated.");
-
+            Debug.Log("Grass generation completed.");
             yield return null;
         }
 
         public override void Clear()
         {
-            // Clear grass details
             Terrain.activeTerrain.terrainData.detailPrototypes = null;
             Debug.Log("Grass cleared.");
         }
@@ -135,7 +129,6 @@ namespace Assets.Scripts.MapGenerator.Generators
             Density = data.density;
             Randomize = data.randomize;
 
-            // Load grass textures
             GrassTextures.Clear();
             for (int i = 0; i < data.grassTextures; i++)
             {

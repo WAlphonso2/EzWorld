@@ -32,6 +32,11 @@ public class TexturesGenerator : Generator
         // Apply terrain layers to the terrain
         terrainData.terrainLayers = terrainLayers;
 
+        if (terrainData.alphamapLayers != textures.Count) {
+            Debug.LogError("Mismatch in terrain layers and alphamap layers count.");
+            yield break; // Stop further execution to prevent errors
+        }
+
         // Fill the splatmap array (alphamaps)
         float[,,] splatmaps = new float[terrainData.alphamapWidth, terrainData.alphamapHeight, terrainData.alphamapLayers];
         float terrainMaxHeight = terrainData.size.y;

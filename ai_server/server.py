@@ -47,19 +47,18 @@ def parse_description():
     UseFalloffMap: Toggles the use of a falloff map to control terrain generation near edges.
     Randomize: Enables randomization of the noise offset to generate different terrains each time.
     AutoUpdate: Automatically updates the terrain when changes are made in the inspector.
-    ShallowDepth: Controls the shallow depth for terrain, affecting low-lying areas.
 
     - width and height should be around 1024 (minimum 512, maximum 1024).
-    - depth represents the terrain height and should be between 5 and 120.
+    - depth represents the terrain height and should be between 65 and 200.
     - octaves represent the levels of detail and should be between 1 and 15.
-    - scale determines the level of detail and should range between 100 and 500.
+    - scale determines the level of detail and should range between 70 and 500.
     - lacunarity affects how much detail is added at each octave, typically between 1 and 5.
     - persistence controls how each octave contributes to the overall shape, typically between 0 and 0.5.
     - heightCurve: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"].  Rate of change of heights curve.
-    - heightCurveOffset is the vertical offset of the height curve, usually between 1000 and 12000.
+    - heightCurveOffset is the vertical offset of the height curve, usually between 5000 and 12000.
     - falloffDirection affects the direction of terrain slopes, usually between 1 and 4.
     - falloffRange affects the slope of the terrain, usually between 1 and 4.
-    - useFalloffMap should be true or false.
+    - useFalloffMap should be true or false, make sure this is alwyas true.
     - randomize and autoUpdate should be true or false.
 
     TexturesGenerator:
@@ -88,17 +87,17 @@ def parse_description():
     Density: Controls how densely the grass or trees are placed within the allowed areas.
 
     - octaves should be between 0 and 4.
-    - scale should be between 0 and 50.
+    - scale should be between 0 and 25.
     - lacunarity should be between 0 and 3.
     - persistence should be between 0 and 1.
     - offset should be between 1000 and 10000.
-    - minLevel should be between -400 and -1.
-    - maxLevel should be between 0 and 100.
-    - maxSteepness should be between 0 and 90.
-    - islandSize should be between -1 and 1.
-    - density should be between 1 and 1000.
+    - minLevel should be between -200 and -90.
+    - maxLevel should be between 90 and 200.
+    - maxSteepness should be between 50 and 90.
+    - islandSize should be between 0.5 and 1.
+    - density should be between 700 and 1000.
     - randomize and autoUpdate should be true or false.
-    - Grass Texture should be an integer representing the number of Grass Texture, typically between 1 and 10.
+    - Grass Texture should be an integer representing the number of Grass Texture, typically between 4 and 10.
 
     TreeGenerator:
     Octaves: Determines the number of noise layers used for tree distribution (more octaves add finer details to the noise).
@@ -130,8 +129,8 @@ def parse_description():
 
     WaterGenerator:
     - waterType should be "river", "lake", "ocean", or "none".
-    - waterLevel represents the level of water height for lakes or oceans.
-    - river width range x and y, x should be between 500 and 2000, y should be between 500 and 2000 
+    - waterLevel represents the level of water height for lakes or oceans, should be between 50 and 0.
+    - river width range x and y, x should be between 100 and 100, y should be between 100 and 1000 
     - randomize and autoUpdate should be true or false.
 
     Make sure you return the result in JSON format like this:   
@@ -192,7 +191,7 @@ def parse_description():
                 "maxLevel": float,
                 "maxSteepness": float,
                 "islandSize": float,
-                "density": integer,
+                "density": float,
                 "randomize": boolean,
                 "grassTextures": integer
             }},

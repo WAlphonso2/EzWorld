@@ -10,6 +10,7 @@ public class TerrainGenerator : Generator
     public GrassGenerator grassGenerator;
     public WaterGenerator waterGenerator;
     public PathGenerator pathGenerator;
+    public RiverGenerator riverGenerator;
 
     public Camera initialCamera;
     public Camera thirdPersonCamera;
@@ -23,17 +24,20 @@ public class TerrainGenerator : Generator
         grassGenerator.Clear();
         waterGenerator.Clear();
         pathGenerator.Clear();
+        riverGenerator.Clear();
     }
 
     public override IEnumerator Generate(WorldInfo worldInfo)
     {
-        // does order matter here or can they all be run in parallel?
+        // Generate heights and textures first
         yield return StartCoroutine(heightsGenerator.Generate(worldInfo));
         yield return StartCoroutine(texturesGenerator.Generate(worldInfo));
-        yield return StartCoroutine(pathGenerator.Generate(worldInfo));
         yield return StartCoroutine(treeGenerator.Generate(worldInfo));
         yield return StartCoroutine(grassGenerator.Generate(worldInfo));
+        yield return StartCoroutine(pathGenerator.Generate(worldInfo));
+
         yield return StartCoroutine(waterGenerator.Generate(worldInfo));
+
         yield return StartCoroutine(SwitchToGamePlayMode());
     }
 

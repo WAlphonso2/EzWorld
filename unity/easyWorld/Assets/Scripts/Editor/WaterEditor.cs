@@ -1,92 +1,203 @@
 using UnityEngine;
 using UnityEditor;
-using Assets.Scripts.MapGenerator.Generators;
 using Unity.EditorCoroutines.Editor;
+using Assets.Scripts.MapGenerator.Generators;
+using System;
 
 [CustomEditor(typeof(WaterGenerator))]
 public class WaterEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        // Get reference to the WaterGenerator component
         WaterGenerator gen = (WaterGenerator)target;
 
-        DrawDefaultInspector();
+        // Draw the waterPrefab field
+        gen.waterPrefab = (GameObject)EditorGUILayout.ObjectField("Water Prefab", gen.waterPrefab, typeof(GameObject), true);
 
-        GUILayout.Space(10);  
+        // Draw waterLevel field
+        gen.waterLevel = EditorGUILayout.FloatField("Water Level", gen.waterLevel);
 
-        // Water Type selection (options: river, lake, ocean)
+        // Draw RiverGenerator field (for generating rivers with water)
+        gen.riverGenerator = (RiverGenerator)EditorGUILayout.ObjectField("River Generator", gen.riverGenerator, typeof(RiverGenerator), true);
+
+        GUILayout.Space(10);
+
+        // Draw the rockPrefabs field for selecting multiple rock prefabs
+        // SerializedProperty rockPrefabsProperty = serializedObject.FindProperty("rockPrefabs");
+        // EditorGUILayout.PropertyField(rockPrefabsProperty, new GUIContent("Rock Prefabs"), true);
+
+        // Draw the rockSpacing field for defining the spacing between rocks
+        // gen.rockSpacing = EditorGUILayout.IntField("Rock Spacing", gen.rockSpacing);
+
+        GUILayout.Space(10);
+
+        // Choose water type (River, Lake, Ocean) from a dropdown menu
         string[] waterTypes = new string[] { "river", "lake", "ocean" };
 
-        // Find index of the current water type, fallback to 0 (river) if not found
-        int selectedWaterTypeIndex = ArrayUtility.IndexOf(waterTypes, gen.waterPrefab != null ? gen.waterPrefab.name.ToLower() : "river");
-        if (selectedWaterTypeIndex == -1) selectedWaterTypeIndex = 0; 
+        // Default to "river" if the prefab name doesn't match the available water types
+        string currentWaterType = "river"; // Default to river if the water type is not specified
 
-        selectedWaterTypeIndex = EditorGUILayout.Popup("Water Type", selectedWaterTypeIndex, waterTypes);
+        // Get the selected water type from the dropdown
+        int selectedWaterType = EditorGUILayout.Popup("Water Type", Array.IndexOf(waterTypes, currentWaterType), waterTypes);
 
-        // Apply the selected water type
-        string selectedWaterType = waterTypes[selectedWaterTypeIndex];
+        GUILayout.Space(10);
 
-        GUILayout.Space(10);  
-
-        // Button to generate water
-        if (GUILayout.Button("Generate Water"))
+        // Validate if the river generator is set before allowing water generation
+        if (gen.riverGenerator == null)
         {
-            // Create a WorldInfo object for water generation
-            WorldInfo worldInfo = new WorldInfo
-            {
-                terrainData = new TerrainData
-                {
-                    waterGeneratorData = new WaterGeneratorData
-                    {
-                        waterType = selectedWaterType,
-                        waterLevel = gen.waterLevel,
-                        riverWidthRange = gen.riverWidthRange,
-                        randomize = gen.randomize,
-                        autoUpdate = gen.autoUpdate
-                    }
-                }
-            };
-
-            // Start water generation
-            EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+            EditorGUILayout.HelpBox("Please assign a River Generator to generate the river.", MessageType.Warning);
         }
 
-        // Button to clear water
+        // Generate water button
+        if (gen.waterPrefab != null && gen.riverGenerator != null)
+        {
+            if (GUILayout.Button("Generate Water"))
+            {
+                // Check if the river has already been generated
+                if (gen.riverGenerator.mainRiverPathPoints == null || gen.riverGenerator.mainRiverPathPoints.Count == 0)
+                {
+                    EditorGUILayout.HelpBox("The river path has not been generated. Please generate the river first.", MessageType.Warning);
+                }
+                else
+                {
+                    // Create WorldInfo for water generation
+                    WorldInfo worldInfo = new WorldInfo
+                    {
+                        terrainData = new CustomTerrainData  
+                        {
+                            waterGeneratorData = new WaterGeneratorData
+                            {
+                                waterLevel = gen.waterLevel,
+                                waterType = waterTypes[selectedWaterType]
+                            }
+                        }
+                    };
+
+                    // Start the water generation coroutine to fill the river path
+                    EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+                }
+            }
+        }
+        else
+        {
+            // Show warning if no water prefab or river generator is selected
+            if (gen.waterPrefab == null)
+            {
+                EditorGUILayout.HelpBox("Please assign a Water Prefab.", MessageType.Warning);
+            }
+        }
+
+        // Clear water button
         if (GUILayout.Button("Clear Water"))
         {
-            // Call the clear function without any other action
             gen.Clear();
         }
 
-        GUILayout.Space(10); 
+        GUILayout.Space(10);
 
-        // Auto-update functionality
-        if (gen.autoUpdate && GUI.changed)
-        {
-            WorldInfo worldInfo = new WorldInfo
-            {
-                terrainData = new TerrainData
-                {
-                    waterGeneratorData = new WaterGeneratorData
-                    {
-                        waterType = selectedWaterType,
-                        waterLevel = gen.waterLevel,
-                        riverWidthRange = gen.riverWidthRange,
-                        randomize = gen.randomize,
-                        autoUpdate = gen.autoUpdate
-                    }
-                }
-            };
-
-            // Automatically generate water when parameters change, if auto-update is enabled
-            EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
-        }
-
-        // Save changes made in the editor
+        // Mark the WaterGenerator as dirty if any changes are made
         if (GUI.changed)
         {
             EditorUtility.SetDirty(target);
         }
+
+        // Apply property modifications for serializedObject
+        serializedObject.ApplyModifiedProperties();
     }
 }
+
+// using UnityEngine;
+// using UnityEditor;
+// using Unity.EditorCoroutines.Editor;
+// using Assets.Scripts.MapGenerator.Generators;
+// using System;
+
+// [CustomEditor(typeof(WaterGenerator))]
+// public class WaterEditor : Editor
+// {
+//     public override void OnInspectorGUI()
+//     {
+//         WaterGenerator gen = (WaterGenerator)target;
+
+//         // Draw the waterPrefab field
+//         gen.waterPrefab = (GameObject)EditorGUILayout.ObjectField("Water Prefab", gen.waterPrefab, typeof(GameObject), true);
+
+//         // Draw waterLevel field
+//         gen.waterLevel = EditorGUILayout.FloatField("Water Level", gen.waterLevel);
+
+//         // Draw RiverGenerator field (for generating rivers with water)
+//         gen.riverGenerator = (RiverGenerator)EditorGUILayout.ObjectField("River Generator", gen.riverGenerator, typeof(RiverGenerator), true);
+
+//         GUILayout.Space(10);
+
+//         // Choose water type (River, Lake, Ocean) from a dropdown menu
+//         string[] waterTypes = new string[] { "river", "lake", "ocean" };
+
+//         // Default to "river" if the prefab name doesn't match the available water types
+//         string currentWaterType = "river"; // Default to river if the water type is not specified
+
+//         // Get the selected water type from the dropdown
+//         int selectedWaterType = EditorGUILayout.Popup("Water Type", Array.IndexOf(waterTypes, currentWaterType), waterTypes);
+
+//         GUILayout.Space(10);
+
+//         // Validate if the river generator is set before allowing water generation
+//         if (gen.riverGenerator == null)
+//         {
+//             EditorGUILayout.HelpBox("Please assign a River Generator to generate the river.", MessageType.Warning);
+//         }
+
+//         // Generate water button
+//         if (gen.waterPrefab != null && gen.riverGenerator != null)
+//         {
+//             if (GUILayout.Button("Generate Water"))
+//             {
+//                 // Check if the river has already been generated
+//                 if (gen.riverGenerator.mainRiverPathPoints == null || gen.riverGenerator.mainRiverPathPoints.Count == 0)
+//                 {
+//                     EditorGUILayout.HelpBox("The river path has not been generated. Please generate the river first.", MessageType.Warning);
+//                 }
+//                 else
+//                 {
+//                     // Create WorldInfo for water generation
+//                     WorldInfo worldInfo = new WorldInfo
+//                     {
+//                         terrainData = new CustomTerrainData  
+//                         {
+//                             waterGeneratorData = new WaterGeneratorData
+//                             {
+//                                 waterLevel = gen.waterLevel,
+//                                 waterType = waterTypes[selectedWaterType]
+//                             }
+//                         }
+//                     };
+
+//                     // Start the water generation coroutine to fill the river path
+//                     EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+//                 }
+//             }
+//         }
+//         else
+//         {
+//             // Show warning if no water prefab or river generator is selected
+//             if (gen.waterPrefab == null)
+//             {
+//                 EditorGUILayout.HelpBox("Please assign a Water Prefab.", MessageType.Warning);
+//             }
+//         }
+
+//         // Clear water button
+//         if (GUILayout.Button("Clear Water"))
+//         {
+//             gen.Clear();
+//         }
+
+//         GUILayout.Space(10);
+
+//         // Mark the WaterGenerator as dirty if any changes are made
+//         if (GUI.changed)
+//         {
+//             EditorUtility.SetDirty(target);
+//         }
+//     }
+// }

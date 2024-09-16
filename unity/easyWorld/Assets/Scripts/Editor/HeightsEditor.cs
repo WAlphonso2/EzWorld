@@ -50,7 +50,7 @@ public class HeightsEditor : Editor
 		// Initialize WorldInfo and TerrainData
 		WorldInfo worldInfo = new WorldInfo
 		{
-			terrainData = new TerrainData
+			terrainData = new CustomTerrainData
 			{
 				heightsGeneratorData = new HeightsGeneratorData
 				{
