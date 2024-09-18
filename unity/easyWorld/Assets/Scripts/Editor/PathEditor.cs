@@ -41,37 +41,41 @@ public class PathEditor : Editor
         {
             if (GUILayout.Button("Generate Paths"))
             {
-                // Gather input data for WorldInfo from the editor fields
+                // Prepare worldInfo with necessary data for path generation
                 WorldInfo worldInfo = new WorldInfo
                 {
-                    terrainData = new CustomTerrainData
-                    {
-                        heightsGeneratorData = new HeightsGeneratorData
-                        {
-                            width = gen.terrain.terrainData.heightmapResolution,
-                            height = gen.terrain.terrainData.heightmapResolution,
-                            depth = 100
-                        },
-                        texturesGeneratorDataList = new List<TexturesGeneratorData>() 
-                    },
-                    heightMap = gen.terrain.terrainData.GetHeights(0, 0,
-                        gen.terrain.terrainData.heightmapResolution,
-                        gen.terrain.terrainData.heightmapResolution)
+                    terrainsData = new List<CustomTerrainData>(), // Initialize terrainsData list
+                    heightMap = gen.terrain.terrainData.GetHeights(0, 0, 
+                        gen.terrain.terrainData.heightmapResolution, 
+                        gen.terrain.terrainData.heightmapResolution) // Store heightMap if necessary
                 };
 
-                // Add the selected texture to the texturesGeneratorDataList
-                worldInfo.terrainData.texturesGeneratorDataList.Add(new TexturesGeneratorData
+                // Add terrain data with heights and textures for path generation
+                worldInfo.terrainsData.Add(new CustomTerrainData
                 {
-                    texture = gen.selectedTexture.name, 
-                    heightCurve = "linear",
-                    tileSizeX = 10,
-                    tileSizeY = 10
+                    heightsGeneratorData = new HeightsGeneratorData
+                    {
+                        width = gen.terrain.terrainData.heightmapResolution,
+                        height = gen.terrain.terrainData.heightmapResolution,
+                        depth = 100 // Example value, modify as needed
+                    },
+                    texturesGeneratorDataList = new List<TexturesGeneratorData>()
+                });
+
+                // Add the selected texture to the texturesGeneratorDataList
+                worldInfo.terrainsData[0].texturesGeneratorDataList.Add(new TexturesGeneratorData
+                {
+                    texture = gen.selectedTexture.name,
+                    heightCurve = "linear", 
+                    tileSizeX = 10, 
+                    tileSizeY = 10 
                 });
 
                 // Start the path generation coroutine
-                EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+                EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo, 0)); // Pass terrain index 0 for the first terrain
             }
         }
+
         else
         {
             // Show warnings if terrain or texture is not selected

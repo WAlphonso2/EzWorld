@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -48,31 +49,34 @@ public class HeightsEditor : Editor
 		}
 
 		// Initialize WorldInfo and TerrainData
-		WorldInfo worldInfo = new WorldInfo
-		{
-			terrainData = new CustomTerrainData
-			{
-				heightsGeneratorData = new HeightsGeneratorData
-				{
-					width = heightsGenerator.Width,
-					height = heightsGenerator.Height,
-					depth = heightsGenerator.Depth,
-					octaves = heightsGenerator.Octaves,
-					scale = heightsGenerator.Scale,
-					lacunarity = heightsGenerator.Lacunarity,
-					persistence = heightsGenerator.Persistance,
-					heightCurveOffset = heightsGenerator.Offset,
-					falloffDirection = heightsGenerator.FalloffDirection,
-					falloffRange = heightsGenerator.FalloffRange,
-					useFalloffMap = heightsGenerator.UseFalloffMap,
-					randomize = heightsGenerator.Randomize,
-					autoUpdate = heightsGenerator.AutoUpdate,
-					heightCurve = "linear" 
-				}
-			}
-		};
+        WorldInfo worldInfo = new WorldInfo
+        {
+            terrainsData = new List<CustomTerrainData>()
+        };
 
-		EditorCoroutineUtility.StartCoroutineOwnerless(heightsGenerator.Generate(worldInfo));
+        // Add one terrain data entry for the current terrain
+        worldInfo.terrainsData.Add(new CustomTerrainData
+        {
+            heightsGeneratorData = new HeightsGeneratorData
+            {
+                width = heightsGenerator.Width,
+                height = heightsGenerator.Height,
+                depth = heightsGenerator.Depth,
+                octaves = heightsGenerator.Octaves,
+                scale = heightsGenerator.Scale,
+                lacunarity = heightsGenerator.Lacunarity,
+                persistence = heightsGenerator.Persistance,
+                heightCurveOffset = heightsGenerator.Offset,
+                falloffDirection = heightsGenerator.FalloffDirection,
+                falloffRange = heightsGenerator.FalloffRange,
+                useFalloffMap = heightsGenerator.UseFalloffMap,
+                randomize = heightsGenerator.Randomize,
+                autoUpdate = heightsGenerator.AutoUpdate,
+                heightCurve = "linear" // Set default height curve here
+            }
+        });
+
+        EditorCoroutineUtility.StartCoroutineOwnerless(heightsGenerator.Generate(worldInfo, 0));
 	}
 
 }

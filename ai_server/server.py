@@ -31,6 +31,11 @@ def parse_description():
     If the description for the terrain does not need tree or grass like dessert(height 162, octaves 8, ) or snow unles the user specicly said, do not add( make the values zero's).
     Make sure if the user say dont add <object> make sure to set the value to zero, for exampl if the user say dont add tree or grass or water(etc) make it zero.
     Please use the following guidelines for each module:
+    If the description contains multiple types of terrain (e.g., 'mountain' and 'grass field flat'), 
+    generate separate terrainData objects for each.
+
+    Each terrain should have its own HeightsGenerator, TexturesGenerator, GrassGenerator, TreeGenerator, and WaterGenerator data.
+    Please use the following structure for each terrain:
 
     HeightsGenerator:
     Width: Determines the width of the terrain in units.
@@ -68,9 +73,10 @@ def parse_description():
     - The user may ask for multiple textures, so the model should include more than one texture if necessary. 
     For example, "desert, deadGrass" for a desert with patches of dead grass, or "snow, rock" for snowy mountains.
     - Each texture should have its own properties: 
+        -  make sire
         - `heightCurve`: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"]. These represent the curve type for how the texture is applied based on terrain height.
-        - `tileSizeX`: float, between 5 and 50 (determines how the texture is tiled on the X axis).
-        - `tileSizeY`: float, between 5 and 50 (determines how the texture is tiled on the Y axis).
+        - `tileSizeX`: float, between 0 and 50 (determines how the texture is tiled on the X axis).
+        - `tileSizeY`: float, between 0 and 50 (determines how the texture is tiled on the Y axis).
         Ensure each texture has unique values for these properties. 
 
 
@@ -135,75 +141,71 @@ def parse_description():
 
     Make sure you return the result in JSON format like this:   
     {{
-        "terrainData":{{
-            "heightsGeneratorData": {{
-                "width": integer,
-                "height": integer,
-                "depth": integer,
-                "octaves": integer,
-                "scale": float,
-                "lacunarity": float,
-                "persistence": float,
-                "heightCurve": string,
-                "heightCurveOffset": float,
-                "falloffDirection": float,
-                "falloffRange": float,
-                "useFalloffMap": boolean,
-                "randomize": boolean,
-                "autoUpdate": boolean
-            }},
-            "texturesGeneratorDataList": [
-                {{
-                    "texture": string,
+        "terrainsData": [
+            {{
+                "heightsGeneratorData": {{
+                    "width": integer,
+                    "height": integer,
+                    "depth": integer,
+                    "octaves": integer,
+                    "scale": float,
+                    "lacunarity": float,
+                    "persistence": float,
                     "heightCurve": string,
-                    "tileSizeX": float,
-                    "tileSizeY": float
+                    "heightCurveOffset": float,
+                    "falloffDirection": float,
+                    "falloffRange": float,
+                    "useFalloffMap": boolean,
+                    "randomize": boolean,
+                    "autoUpdate": boolean
                 }},
-                {{
-                    "texture": string,
-                    "heightCurve": string,
-                    "tileSizeX": float,
-                    "tileSizeY": float
+                "texturesGeneratorDataList": [
+                    {{
+                        "texture": string,
+                        "heightCurve": string,
+                        "tileSizeX": float,
+                        "tileSizeY": float
+                    }}
+                ],
+                "treeGeneratorData": {{
+                    "octaves": integer,
+                    "scale": float,
+                    "lacunarity": float,
+                    "persistence": float,
+                    "offset": float,
+                    "minLevel": float,
+                    "maxLevel": float,
+                    "maxSteepness": float,
+                    "islandSize": float,
+                    "density": float,
+                    "randomize": boolean,
+                    "treePrototypes": integer
                 }},
-                ...
-            ],
-            "treeGeneratorData": {{
-                "octaves": integer,
-                "scale": float,
-                "lacunarity": float,
-                "persistence": float,
-                "offset": float,
-                "minLevel": float,
-                "maxLevel": float,
-                "maxSteepness": float,
-                "islandSize": float,
-                "density": float,
-                "randomize": boolean,
-                "treePrototypes": integer
+                "grassGeneratorData": {{
+                    "octaves": integer,
+                    "scale": float,
+                    "lacunarity": float,
+                    "persistence": float,
+                    "offset": float,
+                    "minLevel": float,
+                    "maxLevel": float,
+                    "maxSteepness": float,
+                    "islandSize": float,
+                    "density": float,
+                    "randomize": boolean,
+                    "grassTextures": integer
+                }},
+                "waterGeneratorData": {{
+                    "waterType": string,
+                    "waterLevel": float,
+                    "riverWidthRangeX": float,  
+                    "riverWidthRangeY": float, 
+                    "randomize": boolean,
+                    "autoUpdate": boolean
+                }}
             }},
-            "grassGeneratorData": {{
-                "octaves": integer,
-                "scale": float,
-                "lacunarity": float,
-                "persistence": float,
-                "offset": float,
-                "minLevel": float,
-                "maxLevel": float,
-                "maxSteepness": float,
-                "islandSize": float,
-                "density": float,
-                "randomize": boolean,
-                "grassTextures": integer
-            }},
-            "waterGeneratorData": {{
-                "waterType": string,
-                "waterLevel": float,
-                "riverWidthRangeX": float,  
-                "riverWidthRangeY": float, 
-                "randomize": boolean,
-                "autoUpdate": boolean
-            }}
-        }}
+            ...
+        ]
     }}
 
 

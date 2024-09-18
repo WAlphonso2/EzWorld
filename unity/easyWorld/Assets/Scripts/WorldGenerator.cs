@@ -15,14 +15,13 @@ public class WorldGenerator : MonoBehaviour
 
     public void GenerateNewWorld(WorldInfo worldInfo)
     {
-        /* 
-         * tell all generators to generate their parts of the world which will run in parallel.
-         * dependent generation should have a parent generator to contain needed logic.
-         * eg. if your generator depends on terrain, put your generator inside of the terrain generator
-         */
-        foreach (Generator g in generators)
+        // Iterate over each terrain in worldInfo and generate its components
+        for (int i = 0; i < worldInfo.terrainsData.Count; i++)
         {
-            StartCoroutine(g.Generate(worldInfo));
+            foreach (Generator g in generators)
+            {
+                StartCoroutine(g.Generate(worldInfo, i));  // Pass terrain index
+            }
         }
 
         Debug.Log("Started all generators successfully");

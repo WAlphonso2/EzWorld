@@ -22,21 +22,26 @@ public class RiverGenerator : Generator
     private List<Vector2> splitRiverPathPoints;
     public WaterGenerator waterGenerator;
 
-    public override IEnumerator Generate(WorldInfo worldInfo)
+    public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
     {
+
+        terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width, 
+                                                            worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth, 
+                                                            worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
+                                                                        
         if (terrain == null)
         {
-            Debug.LogError("No terrain assigned.");
+            Debug.LogError($"No terrain found or created for index {terrainIndex}");
             yield break;
         }
 
-        Debug.Log("Generating river on terrain");
+        Debug.Log($"Generating river on terrain {terrainIndex}");
 
         UnityEngine.TerrainData terrainData = terrain.terrainData;
         int terrainWidth = terrainData.alphamapWidth;
         int terrainLength = terrainData.alphamapHeight;
 
-        // Generate the main river path with controlled snake-like movements
+        // Generate the main river path
         mainRiverPathPoints = GenerateSmoothSnakeRiverPath(terrainWidth, terrainLength);
 
         // Optionally split the river midway
@@ -45,45 +50,40 @@ public class RiverGenerator : Generator
             splitRiverPathPoints = GenerateSplitRiverPath(mainRiverPathPoints, terrainWidth, terrainLength);
         }
 
-        // Smooth the river paths using Bezier curves
         List<Vector2> smoothMainRiverPath = SmoothBezierPath(mainRiverPathPoints, curveSmoothness);
         List<Vector2> smoothSplitRiverPath = allowSplit ? SmoothBezierPath(splitRiverPathPoints, curveSmoothness) : null;
 
-        // Carve the shallow river path into the terrain for both paths
         CarveShallowRiverPath(terrainData, smoothMainRiverPath, waterGenerator.waterLevel);
         if (allowSplit && smoothSplitRiverPath != null)
         {
             CarveShallowRiverPath(terrainData, smoothSplitRiverPath, waterGenerator.waterLevel);
         }
 
-        // Place rocks along the river banks
         PlaceRocksAlongRiver(smoothMainRiverPath);
         if (allowSplit && smoothSplitRiverPath != null)
         {
             PlaceRocksAlongRiver(smoothSplitRiverPath);
         }
 
-        // Apply the riverside texture
         ApplySandTextureAlongRiver(terrainData, smoothMainRiverPath);
         if (allowSplit && smoothSplitRiverPath != null)
         {
             ApplySandTextureAlongRiver(terrainData, smoothSplitRiverPath);
         }
 
-        // Combine the main and split paths into one list
         List<Vector2> combinedRiverPath = new List<Vector2>(smoothMainRiverPath);
         if (allowSplit && smoothSplitRiverPath != null)
         {
             combinedRiverPath.AddRange(smoothSplitRiverPath);
         }
 
-        // Fill the river with water along the entire combined path (main and split)
         waterGenerator.FillRiverWithWaterSingleObject(terrain, terrainData, combinedRiverPath);
 
-        Debug.Log("River generation completed");
+        Debug.Log($"River generation completed for Terrain {terrainIndex}");
 
         yield return null;
     }
+
 
 	private List<Vector2> GenerateSplitRiverPath(List<Vector2> mainPath, int terrainWidth, int terrainLength)
     {

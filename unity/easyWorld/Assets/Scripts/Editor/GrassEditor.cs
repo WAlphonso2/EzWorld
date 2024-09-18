@@ -50,29 +50,33 @@ public class GrassEditor : Editor
             // Prepare worldInfo with the necessary grass generation data
             WorldInfo worldInfo = new WorldInfo
             {
-                terrainData = new CustomTerrainData 
-                {
-                    grassGeneratorData = new GrassGeneratorData
-                    {
-                        octaves = gen.Octaves,
-                        scale = gen.Scale,
-                        lacunarity = gen.Lacunarity,
-                        persistence = gen.Persistence,
-                        offset = gen.Offset,
-                        minLevel = gen.MinLevel,
-                        maxLevel = gen.MaxLevel,
-                        maxSteepness = gen.MaxSteepness,
-                        islandSize = gen.IslandSize,
-                        density = gen.Density,
-                        randomize = gen.Randomize,
-                        grassTextures = gen.GrassTextures.Count 
-                    }
-                }
+                terrainsData = new List<CustomTerrainData>() // Initialize terrainsData list
             };
 
+            // Add terrain data with grass generation information
+            worldInfo.terrainsData.Add(new CustomTerrainData
+            {
+                grassGeneratorData = new GrassGeneratorData
+                {
+                    octaves = gen.Octaves,
+                    scale = gen.Scale,
+                    lacunarity = gen.Lacunarity,
+                    persistence = gen.Persistence,
+                    offset = gen.Offset,
+                    minLevel = gen.MinLevel,
+                    maxLevel = gen.MaxLevel,
+                    maxSteepness = gen.MaxSteepness,
+                    islandSize = gen.IslandSize,
+                    density = gen.Density,
+                    randomize = gen.Randomize,
+                    grassTextures = gen.GrassTextures.Count // Use the number of grass textures
+                }
+            });
+
             // Start generating grass in a coroutine
-            EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+            EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo, 0)); // Pass terrain index 0 for the first terrain
         }
+
 
         // Clear Button: Clears grass
         if (GUILayout.Button("Clear"))

@@ -3,6 +3,7 @@ using UnityEditor;
 using Unity.EditorCoroutines.Editor;
 using Assets.Scripts.MapGenerator.Generators;
 using System;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(WaterGenerator))]
 public class WaterEditor : Editor
@@ -63,21 +64,25 @@ public class WaterEditor : Editor
                     // Create WorldInfo for water generation
                     WorldInfo worldInfo = new WorldInfo
                     {
-                        terrainData = new CustomTerrainData  
-                        {
-                            waterGeneratorData = new WaterGeneratorData
-                            {
-                                waterLevel = gen.waterLevel,
-                                waterType = waterTypes[selectedWaterType]
-                            }
-                        }
+                        terrainsData = new List<CustomTerrainData>()
                     };
 
+                    // Add terrain data for water generation
+                    worldInfo.terrainsData.Add(new CustomTerrainData
+                    {
+                        waterGeneratorData = new WaterGeneratorData
+                        {
+                            waterLevel = gen.waterLevel,
+                            waterType = waterTypes[selectedWaterType] // Assume waterTypes is a predefined list
+                        }
+                    });
+
                     // Start the water generation coroutine to fill the river path
-                    EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+                    EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo, 0)); // terrainIndex = 0
                 }
             }
         }
+
         else
         {
             // Show warning if no water prefab or river generator is selected

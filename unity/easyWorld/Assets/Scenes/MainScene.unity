@@ -278,7 +278,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d5815938e9ce20489b7020772c3f6ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terrain: {fileID: 2112610887}
+  terrain: {fileID: 0}
   riverWidth: 5
   riverDepth: 50
   curveSmoothness: 150
@@ -400,105 +400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 322a20a9cde5bb94eb61d6e4207112b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textures:
-  - Tilesize: {x: 1, y: 1}
-    HeightCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    AngleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  - Tilesize: {x: 1, y: 1}
-    HeightCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    AngleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
+  textures: []
 --- !u!4 &257924196
 Transform:
   m_ObjectHideFlags: 0
@@ -544,7 +446,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waterPrefab: {fileID: 6013632388104371084, guid: 6e0965b76baec374d9a8e0c82f9033cb, type: 3}
-  waterLevel: -3
+  waterLevel: 2
   autoUpdate: 0
   riverGenerator: {fileID: 160795169}
 --- !u!4 &304350349
@@ -739,7 +641,7 @@ MonoBehaviour:
   UseFalloffMap: 1
   Randomize: 1
   AutoUpdate: 0
-  ShallowDepth: 1
+  URPTerrainMaterial: {fileID: 2100000, guid: ca9aff2d47f275845a83e80fe073ff6a, type: 2}
 --- !u!4 &407177277
 Transform:
   m_ObjectHideFlags: 0
@@ -1672,7 +1574,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8aa3a31b124bbee47b26b967fb614a86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terrain: {fileID: 2112610887}
+  terrain: {fileID: 0}
   pathWidth: 4
   selectedTexture: {fileID: 2800000, guid: f7184ea41d1f21d4ca8989233a0ddac0, type: 3}
   curveSmoothness: 120
@@ -1976,7 +1878,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d8ef27c111711429111e6553ea9601, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allowServerStart: 0
+  allowServerStart: 1
   EXECUTABLE: python
   SERVER_DIRECTORY: ai_server
   SERVER_NAME: server.py
@@ -2028,7 +1930,7 @@ MonoBehaviour:
   Scale: 1
   Lacunarity: 1
   Persistence: 0.645
-  Offset: 8167.7983
+  Offset: 2503.5303
   MinLevel: 0
   MaxLevel: 100
   MaxSteepness: 90

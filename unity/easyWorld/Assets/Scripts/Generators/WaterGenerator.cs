@@ -11,20 +11,21 @@ namespace Assets.Scripts.MapGenerator.Generators
         public bool autoUpdate = true;
         public RiverGenerator riverGenerator;
         
-        public override IEnumerator Generate(WorldInfo worldInfo)
+        public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
         {
-            Terrain terrain = Terrain.activeTerrain;
-
+            // Get the correct terrain based on the index or create it if it doesn't exist
+            Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
+            
             if (terrain == null)
             {
-                Debug.LogError("No active terrain found.");
+                Debug.LogError("No terrain assigned or created.");
                 yield break;
             }
 
             UnityEngine.TerrainData terrainData = terrain.terrainData;
 
             // Check water type from the user's input
-            string waterType = worldInfo.terrainData.waterGeneratorData.waterType.ToLower();
+            string waterType = worldInfo.terrainsData[terrainIndex].waterGeneratorData.waterType.ToLower();
 
             switch (waterType)
             {
@@ -32,7 +33,7 @@ namespace Assets.Scripts.MapGenerator.Generators
                     if (riverGenerator != null)
                     {
                         // Generate river first using RiverGenerator
-                        yield return StartCoroutine(riverGenerator.Generate(worldInfo));
+                        yield return StartCoroutine(riverGenerator.Generate(worldInfo, terrainIndex));
                     }
                     FillRiverWithWaterSingleObject(terrain, terrainData, riverGenerator.mainRiverPathPoints);
                     GenerateOcean(terrain, terrainData);
@@ -51,139 +52,128 @@ namespace Assets.Scripts.MapGenerator.Generators
             yield return null;
         }
 
-public void FillRiverWithWaterSingleObject(Terrain terrain, UnityEngine.TerrainData terrainData, List<Vector2> riverPath)
-{
-    if (riverPath == null || riverPath.Count < 2)
-    {
-        Debug.LogError("River path is empty or too short to generate water.");
-        return;
-    }
 
-    // Get the terrain size to scale the water mesh
-    float terrainWidth = terrainData.size.x;
-    float terrainHeight = terrainData.size.z;
+        public void FillRiverWithWaterSingleObject(Terrain terrain, UnityEngine.TerrainData terrainData, List<Vector2> riverPath)
+        {
+            if (riverPath == null || riverPath.Count < 2)
+            {
+                Debug.LogError("River path is empty or too short to generate water.");
+                return;
+            }
 
-    // Create a new GameObject for the river water
-    GameObject riverWater = Instantiate(waterPrefab);
-    riverWater.name = "RiverWater";
+            float terrainWidth = terrainData.size.x;
+            float terrainHeight = terrainData.size.z;
 
-    // Create a procedural mesh for the river water
-    MeshFilter meshFilter = riverWater.GetComponent<MeshFilter>();
-    if (meshFilter == null)
-    {
-        meshFilter = riverWater.AddComponent<MeshFilter>();
-    }
+            GameObject riverWater = Instantiate(waterPrefab);
+            riverWater.name = "RiverWater";
 
-    MeshRenderer meshRenderer = riverWater.GetComponent<MeshRenderer>();
-    if (meshRenderer == null)
-    {
-        meshRenderer = riverWater.AddComponent<MeshRenderer>();
-    }
+            MeshFilter meshFilter = riverWater.GetComponent<MeshFilter>();
+            if (meshFilter == null)
+            {
+                meshFilter = riverWater.AddComponent<MeshFilter>();
+            }
 
-    Mesh riverMesh = new Mesh();
-    meshFilter.mesh = riverMesh;
+            MeshRenderer meshRenderer = riverWater.GetComponent<MeshRenderer>();
+            if (meshRenderer == null)
+            {
+                meshRenderer = riverWater.AddComponent<MeshRenderer>();
+            }
 
-    // Generate vertices for the river mesh
-    List<Vector3> vertices = new List<Vector3>();
-    List<int> triangles = new List<int>();
+            Mesh riverMesh = new Mesh();
+            meshFilter.mesh = riverMesh;
 
-    float riverWidth = this.riverGenerator.riverWidth;  // Use the river width defined in RiverGenerator
-    float waterWidthFactor = 4f;  // Increase this factor to make the water visibly wider than the riverbed
-    float waterOffset = 0.05f;  // Offset to place water slightly above the riverbed
+            List<Vector3> vertices = new List<Vector3>();
+            List<int> triangles = new List<int>();
 
-    // Loop through the river path points
-    for (int i = 0; i < riverPath.Count - 1; i++)
-    {
-        Vector2 currentPoint = riverPath[i];
-        Vector2 nextPoint = riverPath[i + 1];
+            float riverWidth = this.riverGenerator.riverWidth;
+            float waterWidthFactor = 4f;  // Make water wider than the riverbed
+            float waterOffset = 0.05f;
 
-        // Sample the terrain height at the current and next points
-        float currentHeight = terrain.SampleHeight(new Vector3(currentPoint.x / terrainData.heightmapResolution * terrainWidth, 0, currentPoint.y / terrainData.heightmapResolution * terrainHeight));
-        float nextHeight = terrain.SampleHeight(new Vector3(nextPoint.x / terrainData.heightmapResolution * terrainWidth, 0, nextPoint.y / terrainData.heightmapResolution * terrainHeight));
+            for (int i = 0; i < riverPath.Count - 1; i++)
+            {
+                Vector2 currentPoint = riverPath[i];
+                Vector2 nextPoint = riverPath[i + 1];
 
-        // Set the Y position of the water slightly above the terrain height
-        Vector3 currentPoint3D = new Vector3(
-            currentPoint.x / terrainData.heightmapResolution * terrainWidth,
-            currentHeight + waterOffset,  // Place water slightly above the riverbed
-            currentPoint.y / terrainData.heightmapResolution * terrainHeight
-        );
+                float currentHeight = terrain.SampleHeight(new Vector3(currentPoint.x, 0, currentPoint.y));
+                float nextHeight = terrain.SampleHeight(new Vector3(nextPoint.x, 0, nextPoint.y));
 
-        Vector3 nextPoint3D = new Vector3(
-            nextPoint.x / terrainData.heightmapResolution * terrainWidth,
-            nextHeight + waterOffset,  // Place water slightly above the riverbed
-            nextPoint.y / terrainData.heightmapResolution * terrainHeight
-        );
+                Vector3 currentPoint3D = new Vector3(
+                    currentPoint.x,
+                    currentHeight + waterOffset,
+                    currentPoint.y
+                );
 
-        // Calculate perpendicular vectors to create the river's width
-        Vector3 direction = (nextPoint3D - currentPoint3D).normalized;
-        Vector3 perpendicular = Vector3.Cross(direction, Vector3.up).normalized * riverWidth * waterWidthFactor * 0.5f;
+                Vector3 nextPoint3D = new Vector3(
+                    nextPoint.x,
+                    nextHeight + waterOffset,
+                    nextPoint.y
+                );
 
-        // Add vertices for the current and next segment, adjusting Y position based on the terrain height
-        Vector3 leftCurrent = currentPoint3D - perpendicular;  // Left bank (make the water wider)
-        Vector3 rightCurrent = currentPoint3D + perpendicular; // Right bank (make the water wider)
-        Vector3 leftNext = nextPoint3D - perpendicular;        // Next left bank
-        Vector3 rightNext = nextPoint3D + perpendicular;       // Next right bank
+                Vector3 direction = (nextPoint3D - currentPoint3D).normalized;
+                Vector3 perpendicular = Vector3.Cross(direction, Vector3.up).normalized * riverWidth * waterWidthFactor * 0.5f;
 
-        // Add vertices for the current and next segment
-        vertices.Add(leftCurrent);
-        vertices.Add(rightCurrent);
-        vertices.Add(leftNext);
-        vertices.Add(rightNext);
+                Vector3 leftCurrent = currentPoint3D - perpendicular;
+                Vector3 rightCurrent = currentPoint3D + perpendicular;
+                Vector3 leftNext = nextPoint3D - perpendicular;
+                Vector3 rightNext = nextPoint3D + perpendicular;
 
-        // Add triangles for the river mesh (two triangles per segment)
-        int startIndex = i * 4;
-        triangles.AddRange(new int[] {
-            startIndex, startIndex + 1, startIndex + 2,  // First triangle
-            startIndex + 1, startIndex + 3, startIndex + 2  // Second triangle
-        });
-    }
+                vertices.Add(leftCurrent);
+                vertices.Add(rightCurrent);
+                vertices.Add(leftNext);
+                vertices.Add(rightNext);
 
-    // Assign the generated vertices and triangles to the mesh
-    riverMesh.vertices = vertices.ToArray();
-    riverMesh.triangles = triangles.ToArray();
-    riverMesh.RecalculateNormals();
+                int startIndex = i * 4;
+                triangles.AddRange(new int[] {
+                    startIndex, startIndex + 1, startIndex + 2,
+                    startIndex + 1, startIndex + 3, startIndex + 2
+                });
+            }
 
-    // Adjust the water mesh to better fit the river, no manual positioning needed
-    riverWater.transform.position = Vector3.zero;
-    riverWater.transform.localScale = Vector3.one;
+            riverMesh.vertices = vertices.ToArray();
+            riverMesh.triangles = triangles.ToArray();
+            riverMesh.RecalculateNormals();
 
-    Debug.Log("River filled with a wider water object.");
-}
+            // Position water mesh based on terrain's world position
+            riverWater.transform.position = terrain.transform.position;
+            riverWater.transform.localScale = Vector3.one;
+
+            Debug.Log("River filled with a wider water object.");
+        }
 
         private void GenerateLake(Terrain terrain, UnityEngine.TerrainData terrainData)
         {
-            // Define lake properties
-            int lakeRadius = 65;  // Define a reasonable radius for the lake
+            // Position the lake in the center of the terrain
             Vector3 center = new Vector3(
                 terrainData.size.x * 0.5f,
                 waterLevel,
                 terrainData.size.z * 0.5f
             );
 
-            // Place water in a circular shape
-            CarveLakeOrOcean(terrainData, center, lakeRadius);
+            // Carve out the lake area in the terrain (keeps existing radius logic)
+            CarveLakeOrOcean(terrainData, center, 65);  // Keep original lake radius
 
-            // Instantiate water over the lake
+            // Instantiate the water object at the center of the lake
             GameObject lake = Instantiate(waterPrefab, center, Quaternion.identity);
-            lake.transform.localScale = new Vector3(lakeRadius * 2, 1, lakeRadius * 2);
+            lake.transform.localScale = new Vector3(700, 1, 700);  // Set the scale to 700x700
 
-            // Apply sand texture to the shoreline
-            ApplySandTexture(terrain, terrainData, center, lakeRadius);
+            // Apply sand texture around the lake (no change to radius)
+            ApplySandTexture(terrain, terrainData, center, 65);
 
-            Debug.Log("Lake generated at: " + center);
+            Debug.Log("Lake generated with 700x700 water size.");
         }
 
         public void GenerateOcean(Terrain terrain, UnityEngine.TerrainData terrainData)
         {
-            // Oceans cover the entire terrain
+            // Position the ocean in the center of the terrain
             Vector3 oceanPosition = new Vector3(terrainData.size.x / 2, waterLevel, terrainData.size.z / 2);
 
-            // Place water over the entire terrain
+            // Instantiate the water object for the ocean
             GameObject ocean = Instantiate(waterPrefab, oceanPosition, Quaternion.identity);
-            ocean.transform.localScale = new Vector3(terrainData.size.x, 1, terrainData.size.z);
+            ocean.transform.localScale = new Vector3(700, 1, 700);
 
-            Debug.Log("Ocean generated.");
+            Debug.Log("Ocean generated with 700x700 water size.");
         }
+
 
 
         private void CarveLakeOrOcean(UnityEngine.TerrainData terrainData, Vector3 center, int radius)
@@ -234,59 +224,58 @@ public void FillRiverWithWaterSingleObject(Terrain terrain, UnityEngine.TerrainD
             terrainData.SetHeights(0, 0, heights);
         }
 
-    private void ApplySandTexture(Terrain terrain, UnityEngine.TerrainData terrainData, Vector3 center, int radius)
-    {
-        int terrainWidth = terrainData.alphamapWidth;
-        int terrainHeight = terrainData.alphamapHeight;
-
-        // Get the existing alphamaps
-        float[,,] alphaMap = terrainData.GetAlphamaps(0, 0, terrainWidth, terrainHeight);
-
-        // Define the width of the shoreline for texture application
-        int shorelineWidth = 35;
-
-        int centerX = (int)(center.x / terrainData.size.x * terrainWidth);
-        int centerZ = (int)(center.z / terrainData.size.z * terrainHeight);
-
-        // Loop over the area near the lake and apply sand texture
-        for (int x = centerX - radius - shorelineWidth; x < centerX + radius + shorelineWidth; x++)
+        private void ApplySandTexture(Terrain terrain, UnityEngine.TerrainData terrainData, Vector3 center, int radius)
         {
-            for (int z = centerZ - radius - shorelineWidth; z < centerZ + radius + shorelineWidth; z++)
+            int terrainWidth = terrainData.alphamapWidth;
+            int terrainHeight = terrainData.alphamapHeight;
+
+            // Get the existing alphamaps
+            float[,,] alphaMap = terrainData.GetAlphamaps(0, 0, terrainWidth, terrainHeight);
+
+            // Define the width of the shoreline for texture application
+            int shorelineWidth = 35;
+
+            int centerX = (int)(center.x / terrainData.size.x * terrainWidth);
+            int centerZ = (int)(center.z / terrainData.size.z * terrainHeight);
+
+            // Loop over the area near the lake and apply sand texture
+            for (int x = centerX - radius - shorelineWidth; x < centerX + radius + shorelineWidth; x++)
             {
-                // Ensure x and z are within bounds
-                if (x >= 0 && x < terrainWidth && z >= 0 && z < terrainHeight)
+                for (int z = centerZ - radius - shorelineWidth; z < centerZ + radius + shorelineWidth; z++)
                 {
-                    float distanceToCenter = Vector2.Distance(new Vector2(x, z), new Vector2(centerX, centerZ));
-
-                    // Check if we are near the shoreline
-                    if (distanceToCenter <= radius + shorelineWidth && distanceToCenter >= radius)
+                    // Ensure x and z are within bounds
+                    if (x >= 0 && x < terrainWidth && z >= 0 && z < terrainHeight)
                     {
-                        // Apply sand texture based on the distance
-                        float t = Mathf.InverseLerp(radius, radius + shorelineWidth, distanceToCenter);
+                        float distanceToCenter = Vector2.Distance(new Vector2(x, z), new Vector2(centerX, centerZ));
 
-                        // Sand texture index, assuming sand is at index 1 in the textures array
-                        int sandTextureIndex = 1;
-
-                        // Set the texture blending: gradually blend the sand texture
-                        alphaMap[z, x, sandTextureIndex] = Mathf.Lerp(0, 1, t);
-
-                        // Set other textures to 0 or blend them accordingly
-                        for (int i = 0; i < terrainData.alphamapLayers; i++)
+                        // Check if we are near the shoreline
+                        if (distanceToCenter <= radius + shorelineWidth && distanceToCenter >= radius)
                         {
-                            if (i != sandTextureIndex)
+                            // Apply sand texture based on the distance
+                            float t = Mathf.InverseLerp(radius, radius + shorelineWidth, distanceToCenter);
+
+                            // Sand texture index, assuming sand is at index 1 in the textures array
+                            int sandTextureIndex = 1;
+
+                            // Set the texture blending: gradually blend the sand texture
+                            alphaMap[z, x, sandTextureIndex] = Mathf.Lerp(0, 1, t);
+
+                            // Set other textures to 0 or blend them accordingly
+                            for (int i = 0; i < terrainData.alphamapLayers; i++)
                             {
-                                alphaMap[z, x, i] = 1 - alphaMap[z, x, sandTextureIndex];
+                                if (i != sandTextureIndex)
+                                {
+                                    alphaMap[z, x, i] = 1 - alphaMap[z, x, sandTextureIndex];
+                                }
                             }
                         }
                     }
                 }
             }
+
+            // Apply the updated alphamap to the terrain
+            terrainData.SetAlphamaps(0, 0, alphaMap);
         }
-
-        // Apply the updated alphamap to the terrain
-        terrainData.SetAlphamaps(0, 0, alphaMap);
-    }
-
 
 
         private float SmoothStep(float edge0, float edge1, float x)

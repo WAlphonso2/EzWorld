@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using Unity.EditorCoroutines.Editor;
 using Assets.Scripts.MapGenerator.Generators;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(RiverGenerator))]
 public class RiverEditor : Editor
@@ -68,24 +69,29 @@ public class RiverEditor : Editor
                 // Create WorldInfo and assign the terrain data for height adjustment
                 WorldInfo worldInfo = new WorldInfo
                 {
-                    terrainData = new CustomTerrainData
-                    {
-                        heightsGeneratorData = new HeightsGeneratorData
-                        {
-                            width = gen.terrain.terrainData.heightmapResolution,
-                            height = gen.terrain.terrainData.heightmapResolution,
-                            depth = 100
-                        }
-                    },
-                    heightMap = gen.terrain.terrainData.GetHeights(0, 0,
-                        gen.terrain.terrainData.heightmapResolution,
-                        gen.terrain.terrainData.heightmapResolution)
+                    terrainsData = new List<CustomTerrainData>()
                 };
 
+                // Add one terrain data entry for the current terrain
+                worldInfo.terrainsData.Add(new CustomTerrainData
+                {
+                    heightsGeneratorData = new HeightsGeneratorData
+                    {
+                        width = gen.terrain.terrainData.heightmapResolution,
+                        height = gen.terrain.terrainData.heightmapResolution,
+                        depth = 100 // Example value
+                    }
+                });
+
+                worldInfo.heightMap = gen.terrain.terrainData.GetHeights(0, 0,
+                    gen.terrain.terrainData.heightmapResolution,
+                    gen.terrain.terrainData.heightmapResolution);
+
                 // Start the river generation coroutine
-                EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+                EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo, 0)); // terrainIndex = 0
             }
         }
+
         else
         {
             // Show warning if no terrain or water generator is selected
