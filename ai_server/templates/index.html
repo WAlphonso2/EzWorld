@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terrain Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Generate Terrain</h1>
+
+    <!-- Form for entering terrain description -->
+    <form id="terrainForm">
+        <label for="description">Describe the terrain:</label>
+        <input type="text" id="description" name="description" required>
+        <button type="submit">Generate Terrain</button>
+    </form>
+
+    <!-- Div to display AI output or error messages -->
+    <div id="response"></div>
+
+    <!-- WebGL game container -->
+    <h2>WebGL Terrain Preview</h2>
+    <div id="unityContainer">
+        <iframe src="{{ url_for('static', filename='WebGL/index.html') }}" width="960" height="600"></iframe>
+    </div>
+
+    <script>
+        document.getElementById('terrainForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const description = document.getElementById('description').value;
+
+            fetch('/parse_description', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ description: description })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('response').innerHTML = JSON.stringify(data);
+                // Optionally, send this data to the WebGL game via Unity API if necessary
+            })
+            .catch(error => {
+                document.getElementById('response').innerHTML = 'Error generating terrain';
+            });
+        });
+    </script>
+</body>
+</html>
