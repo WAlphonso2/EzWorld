@@ -58,7 +58,7 @@ public class TexturesEditor : Editor
         // Button to generate textures
         if (gen.textures.Count > 0 && GUILayout.Button("Generate"))
         {
-            EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(CreateWorldInfoFromEditor(gen))); 
+            EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(CreateWorldInfoFromEditor(gen), 0));
         }
 
         // Button to clear textures
@@ -75,37 +75,37 @@ public class TexturesEditor : Editor
     }
 
     // Create a WorldInfo object based on the textures set in the Editor
-	private WorldInfo CreateWorldInfoFromEditor(TexturesGenerator gen)
-	{
-		WorldInfo worldInfo = new WorldInfo
-		{
-			terrainData = new CustomTerrainData
-			{
-				texturesGeneratorDataList = new List<TexturesGeneratorData>()
-			}
-		};
+    private WorldInfo CreateWorldInfoFromEditor(TexturesGenerator gen)
+    {
+        WorldInfo worldInfo = new WorldInfo
+        {
+            terrainsData = new List<CustomTerrainData>() // Initialize terrainsData list
+        };
 
-		// Populate the texturesGeneratorDataList with the data from the editor
-		foreach (var tex in gen.textures)
-		{
-			string curveType = tex.Type == 0 ? "linear" : "easein";  
-			if (tex.Type == 1)
-			{
-				curveType = "bezier"; 
-			}
+        // Add terrain data for textures
+        var terrainData = new CustomTerrainData
+        {
+            texturesGeneratorDataList = new List<TexturesGeneratorData>()
+        };
 
-			var textureData = new TexturesGeneratorData
-			{
-				texture = tex.Texture ? tex.Texture.name : "none",
-				heightCurve = curveType,  
-				tileSizeX = tex.Tilesize.x,
-				tileSizeY = tex.Tilesize.y
-			};
+        // Populate the texturesGeneratorDataList with the data from the editor
+        foreach (var tex in gen.textures)
+        {
+            string curveType = tex.Type == 0 ? "linear" : "bezier"; 
 
-			worldInfo.terrainData.texturesGeneratorDataList.Add(textureData);
-		}
+            var textureData = new TexturesGeneratorData
+            {
+                texture = tex.Texture ? tex.Texture.name : "none",
+                heightCurve = curveType,
+                tileSizeX = tex.Tilesize.x,
+                tileSizeY = tex.Tilesize.y
+            };
 
-		return worldInfo;
-	}
+            terrainData.texturesGeneratorDataList.Add(textureData);
+        }
+
+        worldInfo.terrainsData.Add(terrainData); // Add the terrain data to the terrainsData list
+        return worldInfo;
+    }
 
 }

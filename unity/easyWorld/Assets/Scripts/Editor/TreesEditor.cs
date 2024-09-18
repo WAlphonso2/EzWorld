@@ -47,38 +47,42 @@ public class TreesEditor : Editor
 
         GUILayout.Space(10);  
 
-        // Generate button
+        // Generate button for trees
         if (gen.TreePrototypes.Count > 0)
         {
             if (GUILayout.Button("Generate"))
             {
-                // Create a WorldInfo object to pass to the generator
+                // Create WorldInfo object to pass to the generator
                 WorldInfo worldInfo = new WorldInfo
                 {
-                    terrainData = new CustomTerrainData
-                    {
-                        treeGeneratorData = new TreeGeneratorData
-                        {
-                            octaves = gen.Octaves,
-                            scale = gen.Scale,
-                            lacunarity = gen.Lacunarity,
-                            persistence = gen.Persistence,
-                            offset = gen.Offset,
-                            minLevel = gen.MinLevel,
-                            maxLevel = gen.MaxLevel,
-                            maxSteepness = gen.MaxSteepness,
-                            islandSize = gen.IslandSize,
-                            density = gen.Density,
-                            randomize = gen.Randomize,
-                            treePrototypes = gen.TreePrototypes.Count
-                        }
-                    }
+                    terrainsData = new List<CustomTerrainData>() // Initialize terrainsData list
                 };
 
-                // Start the tree generation coroutine using EditorCoroutineUtility
-                EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo));
+                // Add terrain data for tree generation
+                worldInfo.terrainsData.Add(new CustomTerrainData
+                {
+                    treeGeneratorData = new TreeGeneratorData
+                    {
+                        octaves = gen.Octaves,
+                        scale = gen.Scale,
+                        lacunarity = gen.Lacunarity,
+                        persistence = gen.Persistence,
+                        offset = gen.Offset,
+                        minLevel = gen.MinLevel,
+                        maxLevel = gen.MaxLevel,
+                        maxSteepness = gen.MaxSteepness,
+                        islandSize = gen.IslandSize,
+                        density = gen.Density,
+                        randomize = gen.Randomize,
+                        treePrototypes = gen.TreePrototypes.Count
+                    }
+                });
+
+                // Start the tree generation coroutine
+                EditorCoroutineUtility.StartCoroutineOwnerless(gen.Generate(worldInfo, 0)); // terrainIndex = 0
             }
         }
+
 
         // Clear button
         if (GUILayout.Button("Clear"))

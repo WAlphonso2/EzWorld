@@ -26,14 +26,26 @@ namespace Assets.Scripts.MapGenerator.Generators
 
         public List<Texture2D> GrassTextures;
 
-        public override IEnumerator Generate(WorldInfo worldInfo)
+        public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
         {
-            LoadSettings(worldInfo.terrainData.grassGeneratorData);
+            CustomTerrainData terrainData = worldInfo.terrainsData[terrainIndex];  // Get the terrain data for the current terrain
+            LoadSettings(terrainData.grassGeneratorData);
 
             if (Randomize)
             {
                 Offset = Random.Range(0f, 9999f);
             }
+
+            // Use GetTerrainByIndexOrCreate to ensure the terrain exists
+            Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, terrainData.heightsGeneratorData.width, terrainData.heightsGeneratorData.depth, terrainData.heightsGeneratorData.height);
+
+            if (terrain == null)
+            {
+                Debug.LogError($"No terrain found or created for index {terrainIndex}");
+                yield break;
+            }
+
+            UnityEngine.TerrainData terrainUnityData = terrain.terrainData;
 
             List<DetailPrototype> detailPrototypes = new List<DetailPrototype>();
             foreach (var g in GrassTextures)
@@ -44,23 +56,20 @@ namespace Assets.Scripts.MapGenerator.Generators
                     renderMode = DetailRenderMode.GrassBillboard,
                     healthyColor = Color.green,
                     dryColor = Color.yellow,
-                    // Set the height for short and tall grass, with most grass being shorter
-                    minHeight = 0.2f, 
-                    maxHeight = 1.0f, 
+                    minHeight = 0.2f,
+                    maxHeight = 1.0f,
                     minWidth = 0.2f,
                     maxWidth = 1f
                 };
                 detailPrototypes.Add(detailPrototype);
             }
 
-            UnityEngine.TerrainData terrainData = Terrain.activeTerrain.terrainData;
-            terrainData.detailPrototypes = detailPrototypes.ToArray();
-
-            terrainData.SetDetailResolution(terrainData.alphamapWidth, 8);
+            terrainUnityData.detailPrototypes = detailPrototypes.ToArray();
+            terrainUnityData.SetDetailResolution(terrainUnityData.alphamapWidth, 8);
 
             float[,] noiseMap = new PerlinMap()
             {
-                Size = terrainData.alphamapWidth,
+                Size = terrainUnityData.alphamapWidth,
                 Octaves = Octaves,
                 Scale = Scale,
                 Offset = Offset,
@@ -68,16 +77,16 @@ namespace Assets.Scripts.MapGenerator.Generators
                 Lacunarity = Lacunarity
             }.Generate(out float maxLocalNoiseHeight, out float minLocalNoiseHeight);
 
-            for (int i = 0; i < terrainData.detailPrototypes.Length; i++)
+            for (int i = 0; i < terrainUnityData.detailPrototypes.Length; i++)
             {
-                int[,] detailLayer = new int[terrainData.detailWidth, terrainData.detailHeight];
+                int[,] detailLayer = new int[terrainUnityData.detailWidth, terrainUnityData.detailHeight];
 
-                for (int x = 0; x < terrainData.alphamapWidth; x++)
+                for (int x = 0; x < terrainUnityData.alphamapWidth; x++)
                 {
-                    for (int y = 0; y < terrainData.alphamapHeight; y++)
+                    for (int y = 0; y < terrainUnityData.alphamapHeight; y++)
                     {
-                        float height = terrainData.GetHeight(x, y);
-                        float steepness = terrainData.GetSteepness(x / (float)terrainData.alphamapWidth, y / (float)terrainData.alphamapHeight);
+                        float height = terrainUnityData.GetHeight(x, y);
+                        float steepness = terrainUnityData.GetSteepness(x / (float)terrainUnityData.alphamapWidth, y / (float)terrainUnityData.alphamapHeight);
                         float noiseValue = noiseMap[x, y];
 
                         // Check grass placement conditions
@@ -96,10 +105,10 @@ namespace Assets.Scripts.MapGenerator.Generators
                     }
                 }
 
-                terrainData.SetDetailLayer(0, 0, i, detailLayer);
+                terrainUnityData.SetDetailLayer(0, 0, i, detailLayer);
             }
 
-            Debug.Log("Grass generation completed.");
+            Debug.Log($"Grass generation completed for Terrain {terrainIndex}.");
             yield return null;
         }
 

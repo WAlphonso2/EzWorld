@@ -4,8 +4,9 @@ using UnityEngine;
 [System.Serializable]
 public class WorldInfo
 {
-    public CustomTerrainData terrainData;
-    public float[,] heightMap;
+    // List to store multiple terrains
+    public List<CustomTerrainData> terrainsData;
+    public float[,] heightMap; 
 }
 
 [System.Serializable]
@@ -22,7 +23,7 @@ public class CustomTerrainData
 public class TexturesGeneratorData
 {
     public string texture = "none";
-    public string heightCurve = "smooth";
+    public string heightCurve = "constant";
     public float tileSizeX = 10;
     public float tileSizeY = 10;
 }
@@ -38,7 +39,7 @@ public class HeightsGeneratorData
     public float lacunarity = 2;
     public float persistence = .5f;
     public float heightCurveOffset = .3f;
-    public string heightCurve = "linear";
+    public string heightCurve = "easeout";
     public float falloffDirection = 3;
     public float falloffRange = 3;
     public bool useFalloffMap = true;
@@ -90,7 +91,7 @@ public class WaterGeneratorData
 {
     public string waterType = "none";
     public float waterLevel = 20;
-    public Vector2 riverWidthRange = new(500, 500);
+    public Vector2 riverWidthRange = new Vector2(700, 600);
     public bool randomize = true;
     public bool autoUpdate = true;
 }

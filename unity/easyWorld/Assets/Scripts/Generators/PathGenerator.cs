@@ -12,11 +12,15 @@ public class PathGenerator : Generator
     public float splitSpread = 30f;
     public HashSet<Vector2Int> PathPoints { get; private set; } = new HashSet<Vector2Int>();
 
-    public override IEnumerator Generate(WorldInfo worldInfo)
+    public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
     {
+        // Use GetTerrainByIndexOrCreate to ensure the terrain exists
+        terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width, 
+                                                            worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth, 
+                                                            worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
         if (terrain == null)
         {
-            Debug.LogError("No terrain assigned.");
+            Debug.LogError($"No terrain found or created for index {terrainIndex}");
             yield break;
         }
 
@@ -26,7 +30,7 @@ public class PathGenerator : Generator
             yield break;
         }
 
-        Debug.Log("Generating paths on terrain");
+        Debug.Log($"Generating paths on terrain {terrainIndex}");
 
         UnityEngine.TerrainData terrainData = terrain.terrainData;
         int pathTextureIndex = GetTextureIndexOrAdd(terrain, selectedTexture);
@@ -82,7 +86,7 @@ public class PathGenerator : Generator
             }
         }
         terrainData.SetAlphamaps(0, 0, alphamaps);
-        Debug.Log("Path generation completed");
+        Debug.Log($"Path generation completed for Terrain {terrainIndex}");
 
         // Call ClearVegetation after path generation
         ClearVegetationOnPath(terrainData);
