@@ -344,7 +344,7 @@ private void ApplyTerrainSmoothing(TerrainData terrainData, List<Vector2> smooth
 
         float[,,] originalAlphamaps = new float[terrainLength, terrainWidth, terrainData.alphamapLayers];
 
-        // Reset to default (assuming first texture is the base texture)
+        // Reset to default
         for (int z = 0; z < terrainLength; z++)
         {
             for (int x = 0; x < terrainWidth; x++)

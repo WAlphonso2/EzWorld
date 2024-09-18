@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -14,6 +14,11 @@ app = Flask(__name__)
 
 # Initialize the Gemini model
 model = genai.GenerativeModel("gemini-1.5-flash")
+
+# Serve the HTML page with the WebGL game and the input form
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/parse_description', methods=['POST'])
 def parse_description():
@@ -58,12 +63,12 @@ def parse_description():
     - octaves represent the levels of detail and should be between 1 and 15.
     - scale determines the level of detail and should range between 70 and 500.
     - lacunarity affects how much detail is added at each octave, typically between 1 and 5.
-    - persistence controls how each octave contributes to the overall shape, typically between 0 and 0.5.
+    - persistence controls how each octave contributes to the overall shape, typically between 0 and 0.2.
     - heightCurve: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"].  Rate of change of heights curve.
     - heightCurveOffset is the vertical offset of the height curve, usually between 5000 and 12000.
     - falloffDirection affects the direction of terrain slopes, usually between 1 and 4.
     - falloffRange affects the slope of the terrain, usually between 1 and 4.
-    - useFalloffMap should be true or false, make sure this is alwyas true.
+    - useFalloffMap should be true or false, make sure this is alwyas flase.
     - randomize and autoUpdate should be true or false.
 
     TexturesGenerator:

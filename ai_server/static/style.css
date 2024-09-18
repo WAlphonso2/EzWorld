@@ -1,0 +1,15 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+form {
+    margin: 20px;
+}
+
+#unityContainer {
+    margin: 20px auto;
+    border: 2px solid black;
+    width: 960px;
+    height: 600px;
+}

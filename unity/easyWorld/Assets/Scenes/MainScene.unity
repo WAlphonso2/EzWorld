@@ -610,7 +610,7 @@ MonoBehaviour:
   Octaves: 4
   Scale: 134.8
   Lacunarity: 2
-  Persistance: 0.287
+  Persistance: 0.5
   HeightCurve:
     serializedVersion: 2
     m_Curve:
@@ -635,7 +635,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  Offset: 7291.8657
+  Offset: 615.84033
   FalloffDirection: 3
   FalloffRange: 3
   UseFalloffMap: 1
