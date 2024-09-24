@@ -5,6 +5,7 @@ using UnityEngine;
 public class WorldGenerator : MonoBehaviour
 {
     public List<Generator> generators;
+    public CharacterSelectionManager characterSelectionManager;  // Reference to CharacterSelectionManager
 
     public IEnumerator ClearCurrentWorld()
     {
@@ -15,17 +16,24 @@ public class WorldGenerator : MonoBehaviour
 
     public void GenerateNewWorld(WorldInfo worldInfo)
     {
-        /* 
-         * tell all generators to generate their parts of the world which will run in parallel.
-         * dependent generation should have a parent generator to contain needed logic.
-         * eg. if your generator depends on terrain, put your generator inside of the terrain generator
-         */
-        foreach (Generator g in generators)
+        // Generate the world and show character selection after terrain generation is complete
+        StartCoroutine(GenerateWorldAndShowCharacterSelection(worldInfo));
+    }
+
+    private IEnumerator GenerateWorldAndShowCharacterSelection(WorldInfo worldInfo)
+    {
+        for (int i = 0; i < worldInfo.terrainsData.Count; i++)
         {
-            StartCoroutine(g.Generate(worldInfo));
+            foreach (Generator g in generators)
+            {
+                yield return StartCoroutine(g.Generate(worldInfo, i));  // Generate terrain
+            }
         }
 
-        Debug.Log("Started all generators successfully");
+        Debug.Log("Terrain generation complete. Showing character selection UI.");
+
+        // Show character selection UI after terrain generation is done
+        characterSelectionManager.ShowCharacterSelection();
     }
 
     public void OnApplicationQuit()
