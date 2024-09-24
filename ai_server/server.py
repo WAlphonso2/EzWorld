@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -15,6 +15,11 @@ app = Flask(__name__)
 # Initialize the Gemini model
 model = genai.GenerativeModel("gemini-1.5-flash")
 
+# Serve the HTML page with the WebGL game and the input form
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/parse_description', methods=['POST'])
 def parse_description():
 
@@ -29,7 +34,13 @@ def parse_description():
     return a JSON object with parameters required for generating terrain. 
     Make sure that the values for each parameter fall within reasonable ranges to avoid any out-of-bounds issues. 
     If the description for the terrain does not need tree or grass like dessert(height 162, octaves 8, ) or snow unles the user specicly said, do not add( make the values zero's).
+    Make sure if the user say dont add <object> make sure to set the value to zero, for exampl if the user say dont add tree or grass or water(etc) make it zero.
     Please use the following guidelines for each module:
+    If the description contains multiple types of terrain (e.g., 'mountain' and 'grass field flat'), 
+    generate separate terrainData objects for each.
+
+    Each terrain should have its own HeightsGenerator, TexturesGenerator, GrassGenerator, TreeGenerator, and WaterGenerator data.
+    Please use the following structure for each terrain:
 
     HeightsGenerator:
     Width: Determines the width of the terrain in units.
@@ -46,19 +57,18 @@ def parse_description():
     UseFalloffMap: Toggles the use of a falloff map to control terrain generation near edges.
     Randomize: Enables randomization of the noise offset to generate different terrains each time.
     AutoUpdate: Automatically updates the terrain when changes are made in the inspector.
-    ShallowDepth: Controls the shallow depth for terrain, affecting low-lying areas.
 
     - width and height should be around 1024 (minimum 512, maximum 1024).
-    - depth represents the terrain height and should be between 5 and 200.
+    - depth represents the terrain height and should be between 65 and 200.
     - octaves represent the levels of detail and should be between 1 and 15.
-    - scale determines the level of detail and should range between 60 and 500.
+    - scale determines the level of detail and should range between 70 and 500.
     - lacunarity affects how much detail is added at each octave, typically between 1 and 5.
-    - persistence controls how each octave contributes to the overall shape, typically between 0 and 1.
+    - persistence controls how each octave contributes to the overall shape, typically between 0 and 0.2.
     - heightCurve: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"].  Rate of change of heights curve.
-    - heightCurveOffset is the vertical offset of the height curve, usually between 1000 and 12000.
-    - falloffDirection affects the direction of terrain slopes, usually between 1 and 7.
-    - falloffRange affects the slope of the terrain, usually between 1 and 5.
-    - useFalloffMap should be true or false.
+    - heightCurveOffset is the vertical offset of the height curve, usually between 5000 and 12000.
+    - falloffDirection affects the direction of terrain slopes, usually between 1 and 4.
+    - falloffRange affects the slope of the terrain, usually between 1 and 4.
+    - useFalloffMap should be true or false, make sure this is alwyas flase.
     - randomize and autoUpdate should be true or false.
 
     TexturesGenerator:
@@ -68,9 +78,10 @@ def parse_description():
     - The user may ask for multiple textures, so the model should include more than one texture if necessary. 
     For example, "desert, deadGrass" for a desert with patches of dead grass, or "snow, rock" for snowy mountains.
     - Each texture should have its own properties: 
+        -  make sire
         - `heightCurve`: Choose from ["linear", "constant", "easeIn", "easeOut", "sine", "bezier"]. These represent the curve type for how the texture is applied based on terrain height.
-        - `tileSizeX`: float, between 5 and 50 (determines how the texture is tiled on the X axis).
-        - `tileSizeY`: float, between 5 and 50 (determines how the texture is tiled on the Y axis).
+        - `tileSizeX`: float, between 0 and 50 (determines how the texture is tiled on the X axis).
+        - `tileSizeY`: float, between 0 and 50 (determines how the texture is tiled on the Y axis).
         Ensure each texture has unique values for these properties. 
 
 
@@ -86,18 +97,18 @@ def parse_description():
     IslandsSize: Defines the size of areas where grass or trees are not placed; used to control the density of islands.
     Density: Controls how densely the grass or trees are placed within the allowed areas.
 
-    - octaves should be between 0 and 8.
-    - scale should be between 0 and 50.
+    - octaves should be between 0 and 4.
+    - scale should be between 0 and 25.
     - lacunarity should be between 0 and 3.
     - persistence should be between 0 and 1.
-    - offset should be between 0 and 1.
-    - minLevel should be between 0 and 1.
-    - maxLevel should be between 0 and 1.
-    - maxSteepness should be between 0 and 90.
-    - islandSize should be between -1 and 1.
-    - density should be between 0 and 100.
+    - offset should be between 1000 and 10000.
+    - minLevel should be between -200 and -90.
+    - maxLevel should be between 90 and 200.
+    - maxSteepness should be between 50 and 90.
+    - islandSize should be between 0.5 and 1.
+    - density should be between 700 and 1000.
     - randomize and autoUpdate should be true or false.
-    - Grass Texture should be an integer representing the number of Grass Texture, typically between 1 and 10.
+    - Grass Texture should be an integer representing the number of Grass Texture, typically between 4 and 10.
 
     TreeGenerator:
     Octaves: Determines the number of noise layers used for tree distribution (more octaves add finer details to the noise).
@@ -129,81 +140,77 @@ def parse_description():
 
     WaterGenerator:
     - waterType should be "river", "lake", "ocean", or "none".
-    - waterLevel represents the level of water height for lakes or oceans.
-    - river width range x and y, x should be between 500 and 2000, y should be between 500 and 2000 
+    - waterLevel represents the level of water height for lakes or oceans, should be between 50 and 0.
+    - river width range x and y, x should be between 100 and 100, y should be between 100 and 1000 
     - randomize and autoUpdate should be true or false.
 
     Make sure you return the result in JSON format like this:   
     {{
-        "terrainData":{{
-            "heightsGeneratorData": {{
-                "width": integer,
-                "height": integer,
-                "depth": integer,
-                "octaves": integer,
-                "scale": float,
-                "lacunarity": float,
-                "persistence": float,
-                "heightCurve": string,
-                "heightCurveOffset": float,
-                "falloffDirection": float,
-                "falloffRange": float,
-                "useFalloffMap": boolean,
-                "randomize": boolean,
-                "autoUpdate": boolean
-            }},
-            "texturesGeneratorDataList": [
-                {{
-                    "texture": string,
+        "terrainsData": [
+            {{
+                "heightsGeneratorData": {{
+                    "width": integer,
+                    "height": integer,
+                    "depth": integer,
+                    "octaves": integer,
+                    "scale": float,
+                    "lacunarity": float,
+                    "persistence": float,
                     "heightCurve": string,
-                    "tileSizeX": float,
-                    "tileSizeY": float
+                    "heightCurveOffset": float,
+                    "falloffDirection": float,
+                    "falloffRange": float,
+                    "useFalloffMap": boolean,
+                    "randomize": boolean,
+                    "autoUpdate": boolean
                 }},
-                {{
-                    "texture": string,
-                    "heightCurve": string,
-                    "tileSizeX": float,
-                    "tileSizeY": float
+                "texturesGeneratorDataList": [
+                    {{
+                        "texture": string,
+                        "heightCurve": string,
+                        "tileSizeX": float,
+                        "tileSizeY": float
+                    }}
+                ],
+                "treeGeneratorData": {{
+                    "octaves": integer,
+                    "scale": float,
+                    "lacunarity": float,
+                    "persistence": float,
+                    "offset": float,
+                    "minLevel": float,
+                    "maxLevel": float,
+                    "maxSteepness": float,
+                    "islandSize": float,
+                    "density": float,
+                    "randomize": boolean,
+                    "treePrototypes": integer
                 }},
-                ...
-            ],
-            "treeGeneratorData": {{
-                "octaves": integer,
-                "scale": float,
-                "lacunarity": float,
-                "persistence": float,
-                "offset": float,
-                "minLevel": float,
-                "maxLevel": float,
-                "maxSteepness": float,
-                "islandSize": float,
-                "density": float,
-                "randomize": boolean,
-                "treePrototypes": integer
+                "grassGeneratorData": {{
+                    "octaves": integer,
+                    "scale": float,
+                    "lacunarity": float,
+                    "persistence": float,
+                    "offset": float,
+                    "minLevel": float,
+                    "maxLevel": float,
+                    "maxSteepness": float,
+                    "islandSize": float,
+                    "density": float,
+                    "randomize": boolean,
+                    "grassTextures": integer
+                }},
+                "waterGeneratorData": {{
+                    "waterType": string,
+                    "waterLevel": float,
+                    "riverWidthRangeX": float,  
+                    "riverWidthRangeY": float, 
+                    "randomize": boolean,
+                    "autoUpdate": boolean
+                }}
             }},
-            "grassGeneratorData": {{
-                "octaves": integer,
-                "scale": float,
-                "lacunarity": float,
-                "persistence": float,
-                "offset": float,
-                "minLevel": float,
-                "maxLevel": float,
-                "maxSteepness": float,
-                "islandSize": float,
-                "density": integer,
-                "randomize": boolean,
-                "grassTextures": integer
-            }},
-            "waterGeneratorData": {{
-                "waterType": string,
-                "waterLevel": float,
-                "riverWidthRangeX": float,  
-                "riverWidthRangeY": float, 
-                "randomize": boolean,
-                "autoUpdate": boolean
-            }}
-        }}
+            ...
+        ]
     }}
 
 

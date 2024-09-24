@@ -20,50 +20,50 @@ public class HeightsGenerator : Generator
     public bool Randomize;
     public bool AutoUpdate;
 
-    // New shallow depth field
-    public float ShallowDepth = 1f;
+    public Material URPTerrainMaterial; // Add this to assign a URP material
 
     private void OnValidate()
     {
-        if (Width < 1)
-        {
-            Width = 1;
-        }
-        if (Height < 1)
-        {
-            Height = 1;
-        }
-        if (Lacunarity < 1)
-        {
-            Lacunarity = 1;
-        }
-        if (Octaves < 0)
-        {
-            Octaves = 0;
-        }
-        if (Scale <= 0)
-        {
-            Scale = 0.0001f;
-        }
+        if (Width < 1) Width = 1;
+        if (Height < 1) Height = 1;
+        if (Lacunarity < 1) Lacunarity = 1;
+        if (Octaves < 0) Octaves = 0;
+        if (Scale <= 0) Scale = 0.0001f;
     }
 
-    public override IEnumerator Generate(WorldInfo worldInfo)
+    public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
     {
-        LoadSettings(worldInfo.terrainData.heightsGeneratorData);
+        // Fetch terrain-specific data from worldInfo
+        CustomTerrainData terrainData = worldInfo.terrainsData[terrainIndex];
+        LoadSettings(terrainData.heightsGeneratorData);  // Load the specific settings for this terrain
 
-        if (Randomize)
+        // Use the GetTerrainByIndexOrCreate method from TerrainGenerator
+        Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, terrainData.heightsGeneratorData.width, terrainData.heightsGeneratorData.depth, terrainData.heightsGeneratorData.height);
+        if (terrain == null)
         {
-            Offset = Random.Range(0f, 9999f);
+            Debug.LogError($"No terrain found or created for index {terrainIndex}");
+            yield break;
         }
 
-        UnityEngine.TerrainData terrainData = Terrain.activeTerrain.terrainData;
+        UnityEngine.TerrainData terrainUnityData = terrain.terrainData;
 
-        terrainData.heightmapResolution = Width + 1;
-        terrainData.alphamapResolution = Width;
-        terrainData.SetDetailResolution(Width, 8);
+        // Set up terrain size and resolution based on the data
+        terrainUnityData.heightmapResolution = terrainData.heightsGeneratorData.width + 1;
+        terrainUnityData.alphamapResolution = terrainData.heightsGeneratorData.width;
+        terrainUnityData.SetDetailResolution(terrainData.heightsGeneratorData.width, 8);
+        terrainUnityData.size = new Vector3(terrainData.heightsGeneratorData.width, terrainData.heightsGeneratorData.depth, terrainData.heightsGeneratorData.height);
 
-        terrainData.size = new Vector3(Width, Depth, Height);
+        // Assign URP-compatible terrain material if using URP
+        if (URPTerrainMaterial != null)
+        {
+            terrain.materialTemplate = URPTerrainMaterial;
+        }
+        else
+        {
+            Debug.LogWarning("URP Terrain Material not assigned.");
+        }
 
+        // Generate falloff map if needed
         float[,] falloff = null;
         if (UseFalloffMap)
         {
@@ -71,16 +71,31 @@ public class HeightsGenerator : Generator
             {
                 FalloffDirection = FalloffDirection,
                 FalloffRange = FalloffRange,
-                Size = Width
+                Size = terrainData.heightsGeneratorData.width
             }.Generate();
         }
 
+        // Generate the noise map
         float[,] noiseMap = GenerateNoise(falloff);
-        terrainData.SetHeights(0, 0, noiseMap);
+        terrainUnityData.SetHeights(0, 0, noiseMap);
+
+        // Store the noiseMap in WorldInfo for further use
+        worldInfo.heightMap = noiseMap;
+
+        // Debugging: log the height map values for the first few points
+        Debug.Log($"Height map stored for Terrain {terrainIndex}. First 10 height values:");
+        for (int y = 0; y < Mathf.Min(terrainData.heightsGeneratorData.height, 10); y++)
+        {
+            for (int x = 0; x < Mathf.Min(terrainData.heightsGeneratorData.width, 10); x++)
+            {
+                Debug.Log($"Height at [{x},{y}]: {worldInfo.heightMap[y, x]}");
+            }
+        }
 
         yield return null;
     }
 
+    // Generates noise for the terrain
     float[,] GenerateNoise(float[,] falloffMap = null)
     {
         AnimationCurve heightCurve = new AnimationCurve(HeightCurve.keys);
@@ -125,10 +140,20 @@ public class HeightsGenerator : Generator
 
     public override void Clear()
     {
-        UnityEngine.TerrainData terrainData = Terrain.activeTerrain.terrainData;
-        terrainData.SetHeights(0, 0, new float[Width, Height]);
+        if (Terrain.activeTerrain != null && Terrain.activeTerrain.terrainData != null)
+        {
+            UnityEngine.TerrainData terrainData = Terrain.activeTerrain.terrainData;
+            terrainData.SetHeights(0, 0, new float[Width, Height]);
+            Debug.Log("Heights cleared.");
+        }
+        else
+        {
+            Debug.LogWarning("No active terrain found to clear heights.");
+        }
     }
 
+
+    // Load the height generator settings from data
     private void LoadSettings(HeightsGeneratorData data)
     {
         if (data == null)
