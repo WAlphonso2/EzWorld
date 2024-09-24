@@ -5,6 +5,8 @@ namespace Assets.Scripts.MapGenerator.Maps
 {
     public class FalloffMap : IMap
     {
+        // public float FalloffDirection = 2.5f;  // Lower values make the edges less flat, keeping the flat area small
+        // public float FalloffRange = 0.5f;      // This defines how quickly the falloff happens
         public float FalloffDirection;
         public float FalloffRange;
         public int Size;

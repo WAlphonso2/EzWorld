@@ -1,5 +1,5 @@
 using Assets.Scripts.MapGenerator.Generators;
-using CurvedPathGenerator;
+using System.Collections.Generic; 
 using System.Collections;
 using UnityEngine;
 
@@ -11,29 +11,101 @@ public class TerrainGenerator : Generator
     public GrassGenerator grassGenerator;
     public WaterGenerator waterGenerator;
     public PathGenerator pathGenerator;
+    public RiverGenerator riverGenerator;
 
     public Camera initialCamera;
     public Camera thirdPersonCamera;
-    public GameObject player;
+    public GameObject[] characterPrefabs;  
+    public GameObject player;               
+    public Transform spawnPoint;
+    private GameObject currentCharacter;
 
     public override void Clear()
     {
-        heightsGenerator.Clear();
-        texturesGenerator.Clear();
-        treeGenerator.Clear();
-        grassGenerator.Clear();
-        waterGenerator.Clear();
+        // Ensure that terrain exists before attempting to clear
+        for (int i = 0; i < 10; i++) 
+        {
+            Terrain terrain = GameObject.Find($"Terrain_{i}")?.GetComponent<Terrain>();
+
+            if (terrain != null)
+            {
+                heightsGenerator?.Clear();
+                texturesGenerator?.Clear();
+                treeGenerator?.Clear();
+                grassGenerator?.Clear();
+                waterGenerator?.Clear();
+                pathGenerator?.Clear();
+                riverGenerator?.Clear();
+
+                Debug.Log($"Cleared terrain {i}");
+            }
+            else
+            {
+                Debug.LogWarning($"Terrain {i} not found, skipping clear.");
+            }
+        }
     }
 
-    public override IEnumerator Generate(WorldInfo worldInfo)
+
+
+    public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
     {
-        // does order matter here or can they all be run in parallel?
-        yield return StartCoroutine(heightsGenerator.Generate(worldInfo));
-        yield return StartCoroutine(texturesGenerator.Generate(worldInfo));
-        yield return StartCoroutine(treeGenerator.Generate(worldInfo));
-        yield return StartCoroutine(grassGenerator.Generate(worldInfo));
-        yield return StartCoroutine(waterGenerator.Generate(worldInfo));
-        yield return StartCoroutine(SwitchToGamePlayMode());
+        // Generate terrain-specific data for the terrain index
+        Terrain terrain = GetTerrainByIndexOrCreate(terrainIndex, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width,
+                                                    worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth,
+                                                    worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
+
+        if (terrain == null)
+        {
+            Debug.LogError($"Failed to create or retrieve terrain at index {terrainIndex}");
+            yield break;
+        }
+
+        // Generate heights, textures, trees, grass, path, water
+        yield return StartCoroutine(heightsGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(texturesGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(treeGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(grassGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(pathGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(waterGenerator.Generate(worldInfo, terrainIndex));
+
+    }
+
+    // Create or retrieve the terrain by index, ensuring it's positioned next to other terrains
+    public static Terrain GetTerrainByIndexOrCreate(int terrainIndex, int width, int depth, int height)
+    {
+        // Find the terrain by name, or create it if it doesn't exist
+        GameObject terrainGO = GameObject.Find($"Terrain_{terrainIndex}");
+        Terrain terrain;
+
+        if (terrainGO == null)
+        {
+            terrainGO = new GameObject($"Terrain_{terrainIndex}");
+            terrain = terrainGO.AddComponent<Terrain>();
+            TerrainCollider terrainCollider = terrainGO.AddComponent<TerrainCollider>();
+
+            UnityEngine.TerrainData terrainData = new UnityEngine.TerrainData
+            {
+                heightmapResolution = width + 1,
+                size = new Vector3(width, depth, height)
+            };
+
+            terrain.terrainData = terrainData;
+            terrainCollider.terrainData = terrainData;
+
+            // Position the terrain next to the previous one (assume each terrain is laid out horizontally)
+            float terrainWidth = width;
+            terrainGO.transform.position = new Vector3(terrainIndex * terrainWidth, 0, 0); // Adjust X position for each terrain
+
+            Debug.Log($"Created new terrain at index {terrainIndex}");
+        }
+        else
+        {
+            terrain = terrainGO.GetComponent<Terrain>();
+            Debug.Log($"Found existing terrain at index {terrainIndex}");
+        }
+
+        return terrain;
     }
 
     public static AnimationCurve GetHeightCurveFromType(string curveType)
@@ -70,45 +142,89 @@ public class TerrainGenerator : Generator
                 return AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f);  // Default to linear if unknown
         }
     }
-
-    private IEnumerator SwitchToGamePlayMode()
+  
+    private void PositionPlayerNearPath(WorldInfo worldInfo, int terrainIndex)
     {
-        Debug.Log("Waiting for terrain generation to finish...");
+        // Get the terrain and make sure it's valid
+        Terrain terrain = GetTerrainByIndexOrCreate(terrainIndex, 0, 0, 0);
+        if (terrain == null)
+        {
+            Debug.LogError("Failed to position player: Terrain not found.");
+            return;
+        }
 
-        Debug.Log("Terrain generation complete. Switching cameras...");
+        // Get a random point near the path generated by PathGenerator
+        Vector3 spawnPosition = GetRandomPositionNearPath(worldInfo, terrain);
+        if (spawnPosition == Vector3.zero)
+        {
+            Debug.LogError("No valid path points found for player spawn.");
+            return;
+        }
 
-        // Switch to third-person camera after terrain is generated
-        initialCamera.enabled = false;
-        thirdPersonCamera.enabled = true;
-        thirdPersonCamera.gameObject.SetActive(true);
+        // Check if a character has been selected
+        if (currentCharacter == null)
+        {
+            Debug.LogError("No character selected!");
+            return;
+        }
 
-        Debug.Log("Camera switched. Positioning player...");
-        PositionPlayerOnTerrain();
+        // Set the character's position near the path
+        currentCharacter.transform.position = spawnPosition;
 
-        yield return null;
+        Debug.Log("Player positioned at " + currentCharacter.transform.position);
     }
 
-    private void PositionPlayerOnTerrain()
+    // Get a random position near the path generated by PathGenerator
+    private Vector3 GetRandomPositionNearPath(WorldInfo worldInfo, Terrain terrain)
+{
+    // Convert the HashSet to a List so we can access elements by index
+    List<Vector2Int> pathPointsList = new List<Vector2Int>(pathGenerator.PathPoints);
+
+    if (pathPointsList == null || pathPointsList.Count == 0)
     {
-        Terrain terrain = Terrain.activeTerrain;
-
-        UnityEngine.TerrainData terrainData = terrain.terrainData;
-
-        // Get the center point of the terrain
-        float centerX = terrainData.size.x / 2;
-        float centerZ = terrainData.size.z / 2;
-
-        // Randomly position the player within a certain range around the center
-        float range = Mathf.Min(terrainData.size.x, terrainData.size.z) * 0.25f;
-        float randomX = Random.Range(centerX - range, centerX + range);
-        float randomZ = Random.Range(centerZ - range, centerZ + range);
-
-        // Get the height at the random position on the terrain
-        float yPos = terrain.SampleHeight(new Vector3(randomX, 0, randomZ)) + 1f;
-
-        // Position the player
-        Vector3 playerPosition = new Vector3(randomX, yPos, randomZ);
-        player.transform.position = playerPosition;
-        Debug.Log("Player positioned at " + player.transform.position);
+        Debug.LogError("PathGenerator has no path points.");
+        return Vector3.zero;
     }
+
+    // Select a random point from the list of generated path points
+    Vector2Int randomPathPoint = pathPointsList[Random.Range(0, pathPointsList.Count)];
+
+    // Convert the 2D path point to a 3D world position
+    Vector3 worldPosition = new Vector3(randomPathPoint.x, 0, randomPathPoint.y);
+
+    // Get the height from the noise map generated by HeightsGenerator
+    float yPos = GetHeightFromNoiseMap(worldInfo, randomPathPoint.x, randomPathPoint.y, terrain.terrainData.size.y);
+    worldPosition.y = yPos;
+
+    return worldPosition;
+}
+
+
+    // Get the height from the noise map generated by the HeightsGenerator
+    private float GetHeightFromNoiseMap(WorldInfo worldInfo, int x, int z, float maxTerrainHeight)
+    {
+        // Ensure the height map exists in WorldInfo
+        if (worldInfo.heightMap == null || x >= worldInfo.heightMap.GetLength(0) || z >= worldInfo.heightMap.GetLength(1))
+        {
+            Debug.LogError("Invalid height map or coordinates out of range.");
+            return 0f;
+        }
+
+        // Return the height at the (x, z) position, scaled to the terrain's maximum height
+        return worldInfo.heightMap[z, x] * maxTerrainHeight;
+    }
+
+    // This function is called to set the character that was selected in the UI
+    public void SetSelectedCharacter(int characterIndex)
+    {
+        if (currentCharacter != null)
+        {
+            Destroy(currentCharacter); 
+        }
+
+        // Instantiate the selected character at the spawn point
+        currentCharacter = Instantiate(characterPrefabs[characterIndex], spawnPoint.position, spawnPoint.rotation);
+        Debug.Log("Character selected: " + currentCharacter.name);
+    }
+
 }
