@@ -114,4 +114,10 @@ public class ObjectGeneratorData
 public class DayNightGeneratorData
 {
     public float timeOfDay = 12;
+    public float sunSize = .05f;
+    public Color skyTint = Color.gray;
+    public float atmosphericThickness = 1;
+    public float exposure = 1;
+    public float fogIntensity = 0;
+    public Color fogColor = Color.gray;
 }
