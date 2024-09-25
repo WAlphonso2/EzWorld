@@ -11,7 +11,7 @@ namespace DirectlyGenerator
 
         [Header("World Settings")]
         public WorldInfo worldInfo; // Make WorldInfo editable in Inspector
-
+        public int terrainIndex;
         public void ClearCurrentWorld()
         {
             Debug.Log("Clearing current world");
@@ -31,7 +31,7 @@ namespace DirectlyGenerator
             {
                 Debug.Log($"Using {g.GetType().Name}");
 
-                StartCoroutine(g.Generate(worldInfo));
+                StartCoroutine(g.Generate(worldInfo, terrainIndex));
             }
 
             Debug.Log("Started all generators successfully");
