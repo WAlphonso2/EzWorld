@@ -1848,7 +1848,7 @@ GameObject:
   - component: {fileID: 1685409812}
   - component: {fileID: 1685409811}
   m_Layer: 0
-  m_Name: DayNightGenerator
+  m_Name: AtmosphereGenerator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
