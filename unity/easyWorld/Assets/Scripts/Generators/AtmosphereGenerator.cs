@@ -16,7 +16,7 @@ using UnityEngine;
     _Exposure("Exposure", Range(0, 8)) = 1.3
 }
  */
-public class DayNightGenerator : Generator
+public class AtmosphereGenerator : Generator
 {
     public Light sun;
     public Material skyboxMaterial;
@@ -36,7 +36,7 @@ public class DayNightGenerator : Generator
 
     public override IEnumerator Generate(WorldInfo worldInfo)
     {
-        LoadSettings(worldInfo.dayNightGeneratorData);
+        LoadSettings(worldInfo.atmosphereGeneratorData);
 
         ApplySettings();
 
@@ -102,7 +102,7 @@ public class DayNightGenerator : Generator
         ApplySettings();
     }
 
-    private void LoadSettings(DayNightGeneratorData data)
+    private void LoadSettings(AtmosphereGeneratorData data)
     {
         timeOfDay = data.timeOfDay;
         skyTint = data.skyTint;

@@ -8,7 +8,7 @@ public class WorldInfo
     public List<CustomTerrainData> terrainsData;
     public float[,] heightMap; 
     public List<ObjectGeneratorData> objectList;
-    public DayNightGeneratorData dayNightGeneratorData;
+    public AtmosphereGeneratorData atmosphereGeneratorData;
 }
 
 [System.Serializable]
@@ -111,7 +111,7 @@ public class ObjectGeneratorData
 }
 
 [System.Serializable]
-public class DayNightGeneratorData
+public class AtmosphereGeneratorData
 {
     public float timeOfDay = 12;
     public float sunSize = .05f;
