@@ -5,7 +5,7 @@ using UnityEngine;
 public class WorldInfo
 {
     public TerrainData terrainData;
-    public DayNightGeneratorData dayNightGeneratorData;
+    public AtmosphereGeneratorData atmosphereGeneratorData;
 }
 
 [System.Serializable]
@@ -93,7 +93,7 @@ public class WaterGeneratorData
 }
 
 [System.Serializable]
-public class DayNightGeneratorData
+public class AtmosphereGeneratorData
 {
     public float timeOfDay = 12;
     public float sunSize = .05f;
