@@ -5,7 +5,7 @@ using UnityEngine;
 public class WorldGenerator : MonoBehaviour
 {
     public List<Generator> generators;
-    public CharacterSelectionManager characterSelectionManager;  // Reference to CharacterSelectionManager
+    public CharacterSelectionManager characterSelectionManager;  
 
     public IEnumerator ClearCurrentWorld()
     {
@@ -26,11 +26,14 @@ public class WorldGenerator : MonoBehaviour
         {
             foreach (Generator g in generators)
             {
-                yield return StartCoroutine(g.Generate(worldInfo, i));  // Generate terrain
+                yield return StartCoroutine(g.Generate(worldInfo, i));
             }
         }
 
         Debug.Log("Terrain generation complete. Showing character selection UI.");
+
+        // Pass the worldInfo to the CharacterSelectionManager
+        characterSelectionManager.SetupWorldInfo(worldInfo, 0);
 
         // Show character selection UI after terrain generation is done
         characterSelectionManager.ShowCharacterSelection();
