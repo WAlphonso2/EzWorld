@@ -68,7 +68,7 @@ def parse_description():
     - heightCurveOffset is the vertical offset of the height curve, usually between 5000 and 12000.
     - falloffDirection affects the direction of terrain slopes, usually between 1 and 4.
     - falloffRange affects the slope of the terrain, usually between 1 and 4.
-    - useFalloffMap should be true or false, make sure this is alwyas flase.
+    - useFalloffMap should be true or false. mostly true
     - randomize and autoUpdate should be true or false.
 
     TexturesGenerator:
