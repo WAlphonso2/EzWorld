@@ -2,20 +2,19 @@ using Assets.Scripts.MapGenerator.Maps;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using UnityEngine;
 
 namespace Assets.Scripts.MapGenerator.Generators
 {
     public class ObjectGenerator : Generator
     {
-
         private Dictionary<string, GameObject> objectMapping;
-
-
         private List<GameObject> objectList;
+        public float waterLevel = 4f;
 
-        private void Start(){
+        private void Start()
+        {
+            // Initialize object mappings
             objectMapping = new Dictionary<string, GameObject>(){
                 {"Brick House", Resources.Load<GameObject>("Brick_House/Prefabs/Brick_House_2.79")},
                 {"Ferris Wheel", Resources.Load<GameObject>("Low Poly Houses Free Pack/Prefabs/Lunapark/ferris wheel")},
@@ -26,17 +25,19 @@ namespace Assets.Scripts.MapGenerator.Generators
 
         public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
         {
-
-            foreach(var o in worldInfo.objectList){
-                GenerateObject(o, terrainIndex);
+            foreach (var objData in worldInfo.objectList)
+            {
+                GenerateObject(objData, terrainIndex);
             }
+
             yield return null;
         }
 
         public override void Clear()
         {
-            foreach(var o in objectList){
-                Destroy(o);
+            foreach (var obj in objectList)
+            {
+                Destroy(obj);
             }
             objectList.Clear();
         }
@@ -59,11 +60,18 @@ namespace Assets.Scripts.MapGenerator.Generators
 
             go.transform.localScale = new Vector3(data.scale, data.scale, data.scale);
 
-            // Get the terrain for the provided terrain index
             Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, 1024, 200, 1024); 
             if (terrain == null)
             {
                 Debug.LogError($"Failed to get or create terrain at index {terrainIndex}.");
+                return;
+            }
+
+            float terrainHeightAtPosition = terrain.SampleHeight(new Vector3(data.x, 0, data.y));
+
+            if (terrainHeightAtPosition < waterLevel)
+            {
+                Debug.LogWarning($"Skipping {data.name} at ({data.x}, {data.y}) because it's in water.");
                 return;
             }
 
@@ -92,7 +100,7 @@ namespace Assets.Scripts.MapGenerator.Generators
             go.transform.rotation = Quaternion.Euler(new Vector3(data.Rx, data.Ry, data.Rz));
             objectList.Add(go);
 
-            Debug.Log($"Added {data.name} to terrain {terrainIndex}.");
+            Debug.Log($"Added {data.name} to terrain {terrainIndex} at ({data.x}, {data.y}) with height {terrainHeightAtPosition}.");
         }
     }
 }
