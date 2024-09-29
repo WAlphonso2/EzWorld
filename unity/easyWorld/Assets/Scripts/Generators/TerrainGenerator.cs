@@ -11,6 +11,7 @@ public class TerrainGenerator : Generator
     public WaterGenerator waterGenerator;
     public PathGenerator pathGenerator;
     public RiverGenerator riverGenerator;
+    public ObjectGenerator objectGenerator;
 
     public override void Clear()
     {
@@ -26,6 +27,7 @@ public class TerrainGenerator : Generator
                 waterGenerator?.Clear();
                 pathGenerator?.Clear();
                 riverGenerator?.Clear();
+                objectGenerator?.Clear();
 
                 Debug.Log($"Cleared terrain {i}");
             }
@@ -49,6 +51,7 @@ public class TerrainGenerator : Generator
         }
 
         yield return StartCoroutine(heightsGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(texturesGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(treeGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(grassGenerator.Generate(worldInfo, terrainIndex));

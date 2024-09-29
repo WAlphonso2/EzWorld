@@ -7,6 +7,7 @@ public class WorldInfo
     // List to store multiple terrains
     public List<CustomTerrainData> terrainsData;
     public float[,] heightMap; 
+    public List<ObjectGeneratorData> objectList;
 }
 
 [System.Serializable]
@@ -94,4 +95,16 @@ public class WaterGeneratorData
     public Vector2 riverWidthRange = new Vector2(700, 600);
     public bool randomize = true;
     public bool autoUpdate = true;
+}
+
+[System.Serializable]
+public class ObjectGeneratorData
+{
+    public float x = 0;
+    public float y = 0;
+    public float Rx = 0;
+    public float Ry = 0;
+    public float Rz = 0;
+    public string name = "";
+    public float scale = 1.0f;
 }
