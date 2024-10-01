@@ -27,6 +27,8 @@ def parse_description():
 
     if not description:
         return jsonify({"error": "Description is required."}), 400
+    
+    object_set = {"Brick House", "Ferris Wheel", "Small House"}
 
     # Create the prompt for the AI
     prompt = f"""
@@ -143,6 +145,16 @@ def parse_description():
     - waterLevel represents the level of water height for lakes or oceans, should be between 50 and 0.
     - river width range x and y, x should be between 100 and 100, y should be between 100 and 1000 
     - randomize and autoUpdate should be true or false.
+    
+    ObjectData:
+    Multiplle copies of objects are allowed to be generated at a time.
+    - name: The name of the object. Must be in {object_set}
+    - x: The x position of the center of the object, 0<x<1024
+    - y: The y position of the center of the object, 0<y<1024
+    - Rx: The rotation of the object around the x axis, 0<Rx<360
+    - Ry: The rotation of the object around the y axis, 0<Ry<360
+    - Rz: The rotation of the object around the z axis, 0<Rz<360
+    - scale: The scale of the model size, as a multiple of the model, 0 < scale < 4, typically 1
 
     Make sure you return the result in JSON format like this:   
     {{
@@ -211,6 +223,18 @@ def parse_description():
             }},
             ...
         ]
+        "objectList": [
+        {{
+            "name": string,
+            "x": float,
+            "y": float,
+            "Rx": float,
+            "Ry": float,
+            "Rz": float,
+            "scale": float
+        }},
+        ...
+    ]
     }}
 
 
