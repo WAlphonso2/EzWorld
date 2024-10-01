@@ -38,8 +38,8 @@ def parse_description():
     If the description for the terrain does not need tree or grass like dessert(height 162, octaves 8, ) or snow unles the user specicly said, do not add( make the values zero's).
     Make sure if the user say dont add <object> make sure to set the value to zero, for exampl if the user say dont add tree or grass or water(etc) make it zero.
     Please use the following guidelines for each module:
-    If the description contains multiple types of terrain (e.g., 'mountain' and 'grass field flat'), 
-    generate separate terrainData objects for each.
+    If the description contains multiple types of terrain (e.g., 'mountain' and 'grass field flat'), generate separate terrainData objects for each.
+    If the user mentions a city, make sure to add city generation parameters.
 
     Each terrain should have its own HeightsGenerator, TexturesGenerator, GrassGenerator, TreeGenerator, and WaterGenerator data.
     Please use the following structure for each terrain:
@@ -56,7 +56,7 @@ def parse_description():
     Offset: A value to randomize or shift the noise pattern used in terrain generation.
     FalloffDirection: Defines the direction of the falloff, influencing terrain shape towards edges.
     FalloffRange: Defines how far the falloff effect reaches, influencing terrain smoothness.
-    UseFalloffMap: Toggles the use of a falloff map to control terrain generation near edges.
+    UseFalloffMap: Toggles the use of a falloff map to control terrain generation near edges(Always False).
     Randomize: Enables randomization of the noise offset to generate different terrains each time.
     AutoUpdate: Automatically updates the terrain when changes are made in the inspector.
 
@@ -122,7 +122,7 @@ def parse_description():
     MaxLevel: The maximum height at which trees can be placed.
     MaxSteepness: The steepest slope on which trees can grow; trees won't appear on slopes steeper than this value.
     IslandsSize: Controls the areas where trees are placed based on noise values; lower values restrict trees to specific areas, while higher values spread trees across the terrain.
-    Density: Determines how densely trees are placed on the terrain; higher values result in more trees.
+    Density: Determines how densely trees are placed on the terrain; higher values result in more trees 0.0-1.0.
     Randomize: If enabled, randomizes the noise offset to produce different tree layouts each time the map is generated.
     AutoUpdate: Automatically regenerates the trees whenever any parameter is changed in the inspector.
     for forest uslay its around Density 1, IslandsSize 1, MaxLevel 100.
@@ -145,6 +145,17 @@ def parse_description():
     - waterLevel represents the level of water height for lakes or oceans, should be between 50 and 0.
     - river width range x and y, x should be between 100 and 100, y should be between 100 and 1000 
     - randomize and autoUpdate should be true or false.
+    
+    CityGenerator: if the user wantd city always generate building
+    - If the user mentions generating a city, include the following parameters in the output:
+    - citySize: Choose from [Small, Medium, Large, Very Large]
+    - withSatelliteCity: Boolean, whether the city should have a satellite connected by a highway
+    - borderFlat: Boolean, whether the city should have flat surroundings(Mostly False)
+    - withDowntownArea: Boolean, whether the city should have a downtown metropolitan area
+    - downtownSize: Float 0-200, represents the size of the downtown area
+    - addTrafficSystem: Boolean, whether a traffic system should be added(Mostly True)
+    - trafficHand: Choose between [RightHand, LeftHand]
+    
     
     ObjectData:
     Multiplle copies of objects are allowed to be generated at a time.
@@ -222,7 +233,16 @@ def parse_description():
                 }}
             }},
             ...
-        ]
+        ],
+        "cityData": {{
+        "citySize": string,
+        "withSatelliteCity": boolean,
+        "borderFlat": boolean,
+        "withDowntownArea": boolean,
+        "downtownSize": float,
+        "addTrafficSystem": boolean,
+        "trafficHand": string
+        }},
         "objectList": [
         {{
             "name": string,
@@ -234,7 +254,7 @@ def parse_description():
             "scale": float
         }},
         ...
-    ]
+        ]
     }}
 
 

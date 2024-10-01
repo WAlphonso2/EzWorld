@@ -184,22 +184,52 @@ public class ThirdPersonOrbitCamBasic : MonoBehaviour
     }
 
     // Check for collision from player to camera.
+    // bool ReverseViewingPosCheck(Vector3 checkPos)
+    // {
+    //     // Cast origin and direction.
+    //     Vector3 origin = player.position + pivotOffset;
+    //     Vector3 direction = checkPos - origin;
+
+    //     if (Physics.SphereCast(origin, 0.2f, direction, out RaycastHit hit, direction.magnitude))
+    //     {
+    //         if (hit.transform != player && hit.transform != transform && !hit.transform.GetComponent<Collider>().isTrigger)
+    //         {
+    //             return false;
+    //         }
+    //     }
+
+    //     return true;
+    // }
+    // Check for collision from player to camera.// Check for collision from player to camera.
     bool ReverseViewingPosCheck(Vector3 checkPos)
     {
         // Cast origin and direction.
         Vector3 origin = player.position + pivotOffset;
         Vector3 direction = checkPos - origin;
 
+        // Perform a SphereCast to check for collisions.
         if (Physics.SphereCast(origin, 0.2f, direction, out RaycastHit hit, direction.magnitude))
         {
-            if (hit.transform != player && hit.transform != transform && !hit.transform.GetComponent<Collider>().isTrigger)
+            // Try to get the Collider from the hit object.
+            Collider hitCollider = hit.transform.GetComponent<Collider>();
+
+            // Ignore objects without a collider or if the collider is a trigger.
+            if (hitCollider == null || hitCollider.isTrigger)
+            {
+                return true;  // Ignore this object and continue checking.
+            }
+
+            // If the hit object is not the player or the camera itself, return false (collision detected).
+            if (hit.transform != player && hit.transform != transform)
             {
                 return false;
             }
         }
 
+        // If no collisions or all ignored, return true.
         return true;
     }
+
 
     // Get camera magnitude.
     public float GetCurrentPivotMagnitude(Vector3 finalPivotOffset)

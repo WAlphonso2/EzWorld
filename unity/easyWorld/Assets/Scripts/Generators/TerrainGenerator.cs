@@ -12,7 +12,7 @@ public class TerrainGenerator : Generator
     public PathGenerator pathGenerator;
     public RiverGenerator riverGenerator;
     public ObjectGenerator objectGenerator;
-
+    public CityGen cityGenerator;
     public override void Clear()
     {
         for (int i = 0; i < 10; i++)
@@ -40,9 +40,11 @@ public class TerrainGenerator : Generator
 
     public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
     {
-        Terrain terrain = GetTerrainByIndexOrCreate(terrainIndex, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width,
-                                                    worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth,
-                                                    worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
+        // Create or retrieve the terrain for this index
+        Terrain terrain = GetTerrainByIndexOrCreate(terrainIndex, 
+            worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width,
+            worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth,
+            worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
 
         if (terrain == null)
         {
@@ -50,15 +52,26 @@ public class TerrainGenerator : Generator
             yield break;
         }
 
+        // Generate the terrain components (heights, textures, etc.)
         yield return StartCoroutine(heightsGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(texturesGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(treeGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(grassGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(pathGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(waterGenerator.Generate(worldInfo, terrainIndex));
+
+        // Check if city generation is requested in the WorldInfo
+        if (worldInfo.cityData != null && cityGenerator != null)
+        {
+            // Generate the city after terrain
+            yield return StartCoroutine(cityGenerator.GenerateCity(worldInfo, terrainIndex, terrain));
+        }
+
+        // Call object generator after the city is generated to place objects
+        yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));
     }
 
+    // Static method to retrieve or create the terrain
     public static Terrain GetTerrainByIndexOrCreate(int terrainIndex, int width, int depth, int height)
     {
         GameObject terrainGO = GameObject.Find($"Terrain_{terrainIndex}");
