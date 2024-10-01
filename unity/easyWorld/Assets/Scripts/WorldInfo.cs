@@ -8,6 +8,7 @@ public class WorldInfo
     public List<CustomTerrainData> terrainsData;
     public float[,] heightMap; 
     public List<ObjectGeneratorData> objectList;
+    public CityGeneratorData cityData;
 }
 
 [System.Serializable]
@@ -18,6 +19,19 @@ public class CustomTerrainData
     public TreeGeneratorData treeGeneratorData;
     public GrassGeneratorData grassGeneratorData;
     public WaterGeneratorData waterGeneratorData;
+}
+
+
+[System.Serializable]
+public class CityGeneratorData
+{
+    public string citySize = "Small";
+    public bool withSatelliteCity = false;
+    public bool borderFlat = false;
+    public bool withDowntownArea = true;
+    public float downtownSize = 100f;
+    public bool addTrafficSystem = true;
+    public string trafficHand = "RightHand";
 }
 
 [System.Serializable]
@@ -63,7 +77,7 @@ public class TreeGeneratorData
     public float maxLevel = .9f;
     public float maxSteepness = 45;
     public float islandSize = 1;
-    public float density = 5;
+    public float density = 0.5f;
     public bool randomize = false;
     public int treePrototypes = 3;
 }
