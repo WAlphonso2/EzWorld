@@ -4,8 +4,12 @@ using UnityEngine;
 
 public class WorldGenerator : MonoBehaviour
 {
+    // terrain dependent generators are run for each terrain index
     public List<Generator> terrainDependentGenerators;
+
+    // terrain independent generators are run once
     public List<Generator> terrainIndependentGenerators;
+
     public CharacterSelectionManager characterSelectionManager;
 
     public IEnumerator ClearCurrentWorld()
