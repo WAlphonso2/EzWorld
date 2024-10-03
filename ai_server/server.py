@@ -162,7 +162,8 @@ def parse_description():
     - skyTint is a color defined by RGB values each ranging from 0 to 1. Default sky color should be r=.5, g=.5, b=.5
     - atmosphericThickness is a float ranging from 0-5 inclusive. The standard value is 1.
     - exposure is a float ranging from 0-8 inclusive. The standard value is 1.3 and this controls the overall light intensity coming from the sun in the skybox
-    - fogIntensity is a float ranging from 0-.5 inclusive. 0 implies no fog and .5 implies extremely foggy. Unless specified, 0 fog intensity should be the default.
+    - fogIntensity is a float ranging from 0-.5 inclusive. Fog values should have one of 5 different values 
+        (0 for no fog, .02 for light fog, .05 for medium fog, .1 for heavy fog, and .3 for very heavy fog)
     - fogColor is a color defined by RGB values each ranging from 0 to 1. Default fog color should be r=.5, g=.5, b=.5
     
     Make sure you return the result in JSON format like this:   
