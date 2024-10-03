@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ServerHandler : MonoBehaviour
 {
-    public bool allowServerStart = true;
+    public bool allowUnityStartServer = true;
     public string EXECUTABLE = "python";
     public string SERVER_DIRECTORY = "ai_server";
     public string SERVER_NAME = "server.py";
@@ -22,7 +22,7 @@ public class ServerHandler : MonoBehaviour
 
     void TryStartServer()
     {
-        if (!allowServerStart)
+        if (!allowUnityStartServer)
         {
             UnityEngine.Debug.Log("Unity won't start server, ensure that you are running locally");
             return;
@@ -33,7 +33,7 @@ public class ServerHandler : MonoBehaviour
 
         if (!File.Exists(serverPath))
         {
-            UnityEngine.Debug.Log("Server path doesn't exist, aborting server start");
+            UnityEngine.Debug.Log("Server path doesn't exist, cannot start server");
             return;
         }
 
