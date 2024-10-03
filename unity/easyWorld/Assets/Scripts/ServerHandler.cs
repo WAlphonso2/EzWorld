@@ -24,7 +24,7 @@ public class ServerHandler : MonoBehaviour
     {
         if (!allowServerStart)
         {
-            UnityEngine.Debug.Log("Server is disabled, not starting server");
+            UnityEngine.Debug.Log("Unity won't start server, ensure that you are running locally");
             return;
         }
 
@@ -89,7 +89,7 @@ public class ServerHandler : MonoBehaviour
         // force quit server if its still running on application close
         if (pythonAIServer != null && !pythonAIServer.HasExited)
         {
-            UnityEngine.Debug.Log("Python server force killed");
+            UnityEngine.Debug.Log("Python server force killed because application was quit");
             CleanupProcess();
         }
     }
