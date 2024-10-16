@@ -1,16 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 
 public class WorldGenerator : MonoBehaviour
 {
+    public bool VREnabled = false;
     public List<Generator> generators;
-    public CharacterSelectionManager characterSelectionManager;  
+    public CharacterSelectionManager characterSelectionManager;
+    public XROrigin vrCharacter;
 
     public IEnumerator ClearCurrentWorld()
     {
         Debug.Log("Clearing current world");
         generators.ForEach(g => g.Clear());
+        vrCharacter.gameObject.SetActive(false);
         yield return null;
     }
 
@@ -30,13 +34,23 @@ public class WorldGenerator : MonoBehaviour
             }
         }
 
-        Debug.Log("Terrain generation complete. Showing character selection UI.");
 
-        // Pass the worldInfo to the CharacterSelectionManager
-        characterSelectionManager.SetupWorldInfo(worldInfo, 0);
 
-        // Show character selection UI after terrain generation is done
-        characterSelectionManager.ShowCharacterSelection();
+        if (VREnabled)
+        {
+            Debug.Log("Terrain generation complete. Enabling VR character.");
+            vrCharacter.gameObject.SetActive(true);
+            vrCharacter.transform.position = new Vector3(512, 50, 512); // temp solution, need to do similar thing as placing normal character
+        }
+        else
+        {
+            Debug.Log("Terrain generation complete. Showing character selection UI.");
+            // Pass the worldInfo to the CharacterSelectionManager
+            characterSelectionManager.SetupWorldInfo(worldInfo, 0);
+
+            // Show character selection UI after terrain generation is done
+            characterSelectionManager.ShowCharacterSelection();
+        }
     }
 
     public void OnApplicationQuit()
