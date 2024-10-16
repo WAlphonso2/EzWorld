@@ -1,6 +1,8 @@
 using Assets.Scripts.MapGenerator.Generators;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class TerrainGenerator : Generator
 {
@@ -20,14 +22,14 @@ public class TerrainGenerator : Generator
             Terrain terrain = GameObject.Find($"Terrain_{i}")?.GetComponent<Terrain>();
             if (terrain != null)
             {
-                heightsGenerator?.Clear();
-                texturesGenerator?.Clear();
-                treeGenerator?.Clear();
-                grassGenerator?.Clear();
-                waterGenerator?.Clear();
-                pathGenerator?.Clear();
-                riverGenerator?.Clear();
-                objectGenerator?.Clear();
+                heightsGenerator.Clear();
+                texturesGenerator.Clear();
+                treeGenerator.Clear();
+                grassGenerator.Clear();
+                waterGenerator.Clear();
+                pathGenerator.Clear();
+                riverGenerator.Clear();
+                objectGenerator.Clear();
 
                 Debug.Log($"Cleared terrain {i}");
             }
@@ -44,6 +46,11 @@ public class TerrainGenerator : Generator
                                                     worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth,
                                                     worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
 
+        // TODO: need to add vr support condition
+        var teleportArea = terrain.AddComponent<TeleportationArea>();
+        teleportArea.matchDirectionalInput = true;
+        teleportArea.interactionLayers = LayerMask.NameToLayer("Teleport");
+
         if (terrain == null)
         {
             Debug.LogError($"Failed to create or retrieve terrain at index {terrainIndex}");
@@ -51,12 +58,12 @@ public class TerrainGenerator : Generator
         }
 
         yield return StartCoroutine(heightsGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(texturesGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(waterGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(treeGenerator.Generate(worldInfo, terrainIndex));
         yield return StartCoroutine(grassGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(pathGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(waterGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(pathGenerator?.Generate(worldInfo, terrainIndex));
     }
 
     public static Terrain GetTerrainByIndexOrCreate(int terrainIndex, int width, int depth, int height)
