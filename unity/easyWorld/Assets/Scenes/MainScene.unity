@@ -949,7 +949,7 @@ MonoBehaviour:
   pathGenerator: {fileID: 1348593293}
   riverGenerator: {fileID: 160795169}
   objectGenerator: {fileID: 327687182}
-  cityGen: {fileID: 0}
+  cityGenerator: {fileID: 1046912993}
 --- !u!4 &313846098
 Transform:
   m_ObjectHideFlags: 0
