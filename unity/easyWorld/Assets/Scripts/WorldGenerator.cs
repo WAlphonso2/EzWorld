@@ -5,12 +5,14 @@ using UnityEngine;
 public class WorldGenerator : MonoBehaviour
 {
     public List<Generator> generators;
+    public AtmosphereGenerator atmosphereGenerator;
     public CharacterSelectionManager characterSelectionManager;  
 
     public IEnumerator ClearCurrentWorld()
     {
         Debug.Log("Clearing current world");
         generators.ForEach(g => g.Clear());
+        atmosphereGenerator?.Clear();
         yield return null;
     }
 
@@ -22,6 +24,13 @@ public class WorldGenerator : MonoBehaviour
 
     private IEnumerator GenerateWorldAndShowCharacterSelection(WorldInfo worldInfo)
     {
+        // Call Atmosphere generation first (global settings)
+        if (atmosphereGenerator != null)
+        {
+            yield return StartCoroutine(atmosphereGenerator.Generate(worldInfo, 0));
+        }
+
+        // Generate the terrains
         for (int i = 0; i < worldInfo.terrainsData.Count; i++)
         {
             foreach (Generator g in generators)
