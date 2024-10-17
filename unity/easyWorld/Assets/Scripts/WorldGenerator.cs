@@ -61,7 +61,7 @@ public class WorldGenerator : MonoBehaviour
         {
             Debug.Log("Terrain generation complete. Enabling VR character.");
             vrCharacter.gameObject.SetActive(true);
-            vrCharacter.transform.position = new Vector3(512, 50, 512); // temp solution, need to do similar thing as placing normal character
+            vrCharacter.transform.position = new Vector3(512, 100, 512); // temp solution, need to do similar thing as placing normal character
         }
         else
         {
