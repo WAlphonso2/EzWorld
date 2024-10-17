@@ -137,13 +137,19 @@ public class HeightsGenerator : Generator
 
         return noiseMap;
     }
-
     public override void Clear()
     {
-        if (Terrain.activeTerrain != null && Terrain.activeTerrain.terrainData != null)
+        Terrain terrain = Terrain.activeTerrain;
+        if (terrain != null && terrain.terrainData != null)
         {
-            UnityEngine.TerrainData terrainData = Terrain.activeTerrain.terrainData;
-            terrainData.SetHeights(0, 0, new float[Width, Height]);
+            UnityEngine.TerrainData terrainData = terrain.terrainData;
+
+            // Make sure the heightmap size matches the terrain's resolution
+            int terrainHeightmapResolution = terrainData.heightmapResolution;
+            float[,] clearHeights = new float[terrainHeightmapResolution, terrainHeightmapResolution];
+
+            // Clear the heightmap to flat
+            terrainData.SetHeights(0, 0, clearHeights);
             Debug.Log("Heights cleared.");
         }
         else

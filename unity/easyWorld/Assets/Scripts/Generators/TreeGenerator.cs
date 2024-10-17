@@ -26,102 +26,114 @@ namespace Assets.Scripts.MapGenerator.Generators
 
         public List<GameObject> TreePrototypes;
 
-        public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
+    public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex)
+    {
+        // Load specific tree generation settings for this terrain
+        LoadSettings(worldInfo.terrainsData[terrainIndex].treeGeneratorData);
+
+        if (Randomize)
         {
-            // Load specific tree generation settings for this terrain
-            LoadSettings(worldInfo.terrainsData[terrainIndex].treeGeneratorData);
+            Offset = Random.Range(0f, 9999f);
+        }
 
-            if (Randomize)
+        // Get the correct terrain based on the index or create it if it doesn't exist
+        Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
+        
+        if (terrain == null)
+        {
+            Debug.LogError("No terrain found for the given terrain index.");
+            yield break;
+        }
+
+        UnityEngine.TerrainData terrainData = terrain.terrainData;
+
+        // Create tree prototypes
+        List<TreePrototype> treePrototypes = new List<TreePrototype>();
+        foreach (var t in TreePrototypes)
+        {
+            treePrototypes.Add(new TreePrototype() { prefab = t });
+        }
+
+        terrainData.treePrototypes = treePrototypes.ToArray();
+
+        // Clear any existing tree instances
+        terrainData.treeInstances = new TreeInstance[0];
+
+        // Generate positions for new trees
+        List<Vector3> treePos = new List<Vector3>();
+
+        float maxLocalNoiseHeight;
+        float minLocalNoiseHeight;
+
+        float[,] noiseMap = new PerlinMap()
+        {
+            Size = terrainData.alphamapWidth,
+            Octaves = Octaves,
+            Scale = Scale,
+            Offset = Offset,
+            Persistance = Persistence,
+            Lacunarity = Lacunarity
+        }.Generate(out maxLocalNoiseHeight, out minLocalNoiseHeight);
+
+        // Tree counter
+        int treeCount = 0;
+        int maxTreeLimit = 500;
+
+        // Iterate over terrain points to place trees
+        for (int x = 0; x < terrainData.alphamapWidth; x++)
+        {
+            for (int y = 0; y < terrainData.alphamapHeight; y++)
             {
-                Offset = Random.Range(0f, 9999f);
-            }
-
-            // Get the correct terrain based on the index or create it if it doesn't exist
-            Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.width, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.depth, worldInfo.terrainsData[terrainIndex].heightsGeneratorData.height);
-            
-            if (terrain == null)
-            {
-                Debug.LogError("No terrain found for the given terrain index.");
-                yield break;
-            }
-
-            UnityEngine.TerrainData terrainData = terrain.terrainData;
-
-            // Create tree prototypes
-            List<TreePrototype> treePrototypes = new List<TreePrototype>();
-            foreach (var t in TreePrototypes)
-            {
-                treePrototypes.Add(new TreePrototype() { prefab = t });
-            }
-
-            terrainData.treePrototypes = treePrototypes.ToArray();
-
-            // Clear any existing tree instances
-            terrainData.treeInstances = new TreeInstance[0];
-
-            // Generate positions for new trees
-            List<Vector3> treePos = new List<Vector3>();
-
-            float maxLocalNoiseHeight;
-            float minLocalNoiseHeight;
-
-            float[,] noiseMap = new PerlinMap()
-            {
-                Size = terrainData.alphamapWidth,
-                Octaves = Octaves,
-                Scale = Scale,
-                Offset = Offset,
-                Persistance = Persistence,
-                Lacunarity = Lacunarity
-            }.Generate(out maxLocalNoiseHeight, out minLocalNoiseHeight);
-
-            // Iterate over terrain points to place trees
-            for (int x = 0; x < terrainData.alphamapWidth; x++)
-            {
-                for (int y = 0; y < terrainData.alphamapHeight; y++)
+                if (treeCount >= maxTreeLimit)
                 {
-                    float height = terrainData.GetHeight(x, y);
-                    float heightScaled = height / terrainData.size.y;
-                    float xScaled = (x + Random.Range(-1f, 1f)) / terrainData.alphamapWidth;
-                    float yScaled = (y + Random.Range(-1f, 1f)) / terrainData.alphamapHeight;
-                    float steepness = terrainData.GetSteepness(xScaled, yScaled);
+                    // Exit loop if we have reached the maximum number of trees
+                    break;
+                }
 
-                    float noiseStep = Random.Range(0f, 1f);
-                    float noiseVal = noiseMap[x, y];
+                float height = terrainData.GetHeight(x, y);
+                float heightScaled = height / terrainData.size.y;
+                float xScaled = (x + Random.Range(-1f, 1f)) / terrainData.alphamapWidth;
+                float yScaled = (y + Random.Range(-1f, 1f)) / terrainData.alphamapHeight;
+                float steepness = terrainData.GetSteepness(xScaled, yScaled);
 
-                    // Check conditions for placing trees
-                    if (
-                        noiseStep < Density &&
-                        noiseVal < IslandSize &&
-                        steepness < MaxSteepness &&
-                        height > MinLevel &&
-                        height < MaxLevel
-                    )
-                    {
-                        treePos.Add(new Vector3(xScaled, heightScaled, yScaled));
-                    }
+                float noiseStep = Random.Range(0f, 1f);
+                float noiseVal = noiseMap[x, y];
+
+                // Check conditions for placing trees
+                if (
+                    noiseStep < Density &&
+                    noiseVal < IslandSize &&
+                    steepness < MaxSteepness &&
+                    height > MinLevel &&
+                    height < MaxLevel
+                )
+                {
+                    treePos.Add(new Vector3(xScaled, heightScaled, yScaled));
+                    treeCount++; // Increment tree counter
                 }
             }
-
-            // Create TreeInstance array from generated tree positions
-            TreeInstance[] treeInstances = new TreeInstance[treePos.Count];
-
-            for (int i = 0; i < treeInstances.Length; i++)
-            {
-                treeInstances[i].position = treePos[i];
-                treeInstances[i].prototypeIndex = Random.Range(0, treePrototypes.Count);
-                treeInstances[i].color = new Color(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
-                treeInstances[i].lightmapColor = Color.white;
-                treeInstances[i].heightScale = 1.0f + Random.Range(-0.25f, 0.5f);
-                treeInstances[i].widthScale = 1.0f + Random.Range(-0.5f, 0.25f);
-            }
-
-            terrainData.treeInstances = treeInstances;
-
-            Debug.Log($"{treeInstances.Length} trees were created on terrain {terrainIndex}");
-
-            yield return null;
         }
+
+        // Create TreeInstance array from generated tree positions
+        TreeInstance[] treeInstances = new TreeInstance[treePos.Count];
+
+        for (int i = 0; i < treeInstances.Length; i++)
+        {
+            treeInstances[i].position = treePos[i];
+            treeInstances[i].prototypeIndex = Random.Range(0, treePrototypes.Count);
+            treeInstances[i].color = new Color(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
+            treeInstances[i].lightmapColor = Color.white;
+            treeInstances[i].heightScale = 1.0f + Random.Range(-0.25f, 0.5f);
+            treeInstances[i].widthScale = 1.0f + Random.Range(-0.5f, 0.25f);
+        }
+
+        terrainData.treeInstances = treeInstances;
+
+        Debug.Log($"{treeInstances.Length} trees were created on terrain {terrainIndex}");
+
+        yield return null;
+    }
+public List<GameObject> TreePrototypes2;
 
         public override void Clear()
         {

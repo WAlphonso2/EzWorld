@@ -156,7 +156,6 @@ def parse_description():
     - addTrafficSystem: Boolean, whether a traffic system should be added(Mostly True)
     - trafficHand: Choose between [RightHand, LeftHand]
     
-    
     ObjectData:
     Multiplle copies of objects are allowed to be generated at a time.
     - name: The name of the object. Must be in {object_set}
@@ -166,6 +165,15 @@ def parse_description():
     - Ry: The rotation of the object around the y axis, 0<Ry<360
     - Rz: The rotation of the object around the z axis, 0<Rz<360
     - scale: The scale of the model size, as a multiple of the model, 0 < scale < 4, typically 1
+
+    AtmosphereGenerator:
+    - timeOfDay is a floating point value representing the time of day. Its value should be between 0 and 24 inclusive with 0 and 24 representing 12:00am, 12 representing 12:00pm and so on. 
+    - sunSize is a floating point value representing the size of the sun. Its value should range from 0 to 1 inclusive and the standard sun size is .05.
+    - skyTint is a color defined by RGB values each ranging from 0 to 1. Default sky color should be r=.5, g=.5, b=.5
+    - atmosphericThickness is a float ranging from 0-5 inclusive. The standard value is 1.
+    - exposure is a float ranging from 0-8 inclusive. The standard value is 1.3 and this controls the overall light intensity coming from the sun in the skybox
+    - fogIntensity is a float ranging from 0-.5 inclusive. 0 implies no fog and .5 implies extremely foggy. Unless specified, 0 fog intensity should be the default.
+    - fogColor is a color defined by RGB values each ranging from 0 to 1. Default fog color should be r=.5, g=.5, b=.5
 
     Make sure you return the result in JSON format like this:   
     {{
@@ -234,14 +242,31 @@ def parse_description():
             }},
             ...
         ],
+        "atmosphereGeneratorData": {{
+            "timeOfDay": float,
+            "sunSize": float,
+            "skyTint":{{
+                "r": float,
+                "g": float,
+                "b": float
+            }}
+            "atmosphericThickness": float,
+            "exposure": float,
+            "fogIntensity": float,
+            "fogColor": {{
+                "r": float,
+                "g": float,
+                "b": float
+            }}
+        }},
         "cityData": {{
-        "citySize": string,
-        "withSatelliteCity": boolean,
-        "borderFlat": boolean,
-        "withDowntownArea": boolean,
-        "downtownSize": float,
-        "addTrafficSystem": boolean,
-        "trafficHand": string
+            "citySize": string,
+            "withSatelliteCity": boolean,
+            "borderFlat": boolean,
+            "withDowntownArea": boolean,
+            "downtownSize": float,
+            "addTrafficSystem": boolean,
+            "trafficHand": string
         }},
         "objectList": [
         {{

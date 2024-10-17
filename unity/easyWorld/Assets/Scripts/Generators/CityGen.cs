@@ -1,12 +1,12 @@
 using Assets.Scripts.MapGenerator.Generators;
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 
 public class CityGen : MonoBehaviour
 {
     public GameObject cityGeneratorPrefab;  // Assign your CityGenerator prefab here
     public GameObject trafficSystemPrefab;  // Assign your TrafficSystem prefab here
+    public GameObject oceanPrefab;          // Assign your Ocean prefab here
 
     public IEnumerator GenerateCity(WorldInfo worldInfo, int terrainIndex, Terrain terrain)
     {
@@ -29,18 +29,6 @@ public class CityGen : MonoBehaviour
                 int citySizeInt = GetCitySize(worldInfo.cityData.citySize);
                 cityGen.GenerateCity(citySizeInt, worldInfo.cityData.withSatelliteCity, worldInfo.cityData.borderFlat);
 
-                // Get the instantiated border object to calculate its bounding box
-                GameObject borderObject = GetCityBorderObject(cityGen);
-                if (borderObject != null)
-                {
-                    // Flatten the terrain based on the border size
-                    yield return StartCoroutine(FlattenTerrainForCity(terrain, borderObject));
-                }
-                else
-                {
-                    Debug.LogError("City border object not found.");
-                }
-
                 // Move the City-Maker to the center of the terrain after generation
                 MoveCityMakerToPosition(cityGen.cityMaker, terrainCenter);
 
@@ -55,6 +43,11 @@ public class CityGen : MonoBehaviour
                 {
                     yield return StartCoroutine(AddTrafficSystem(worldInfo.cityData.trafficHand, terrainCenter));
                 }
+
+                // Now, remove the terrain and add the ocean (terrain is removed *after* everything else)
+                yield return new WaitForEndOfFrame(); // Ensures generation has fully completed
+                RemoveTerrain(terrain);
+                AddOcean(terrainCenter, cityGen.cityMaker.transform.position.y);
             }
         }
         else
@@ -107,6 +100,36 @@ public class CityGen : MonoBehaviour
         yield return null;
     }
 
+    // Remove the terrain from the scene
+    private void RemoveTerrain(Terrain terrain)
+    {
+        if (terrain != null)
+        {
+            Destroy(terrain.gameObject);
+            Debug.Log("Terrain removed.");
+        }
+        else
+        {
+            Debug.LogError("Terrain not found!");
+        }
+    }
+
+    // Add an ocean to replace the terrain, and place it 0.5 units below the city's height
+    private void AddOcean(Vector3 position, float cityHeight)
+    {
+        if (oceanPrefab != null)
+        {
+            // Set the ocean 0.5 units below the city's height
+            Vector3 oceanPosition = new Vector3(position.x, cityHeight - 0.5f, position.z);
+            Instantiate(oceanPrefab, oceanPosition, Quaternion.identity);
+            Debug.Log("Ocean added at position " + oceanPosition);
+        }
+        else
+        {
+            Debug.LogError("OceanPrefab is not assigned.");
+        }
+    }
+
     // Helper method to map city size string to integer
     private int GetCitySize(string size)
     {
@@ -119,81 +142,6 @@ public class CityGen : MonoBehaviour
             default:
                 Debug.LogError($"Unknown city size: {size}, defaulting to Small.");
                 return 1; // Default to Small
-        }
-    }
-
-    // Find the border object that was instantiated for the city
-    private GameObject GetCityBorderObject(FCG.CityGenerator cityGen)
-    {
-        // Check if cityMaker exists
-        if (cityGen.cityMaker != null)
-        {
-            foreach (Transform child in cityGen.cityMaker.transform)
-            {
-                // Assuming the border objects have specific names like "smallBorder" or "largeBorder"
-                if (child.name.Contains("Border"))
-                {
-                    return child.gameObject;
-                }
-            }
-        }
-        return null;
-    }
-
-    // Flatten the terrain based on the bounding box of the city border
-    private IEnumerator FlattenTerrainForCity(Terrain terrain, GameObject borderObject)
-    {
-        // Get the bounding box of the border object
-        Bounds borderBounds = GetBoundingBox(borderObject);
-
-        // Convert world position to terrain heightmap position
-        TerrainData terrainData = terrain.terrainData;
-        int terrainPosX = Mathf.RoundToInt((borderBounds.center.x - terrain.transform.position.x) / terrainData.size.x * terrainData.heightmapResolution);
-        int terrainPosZ = Mathf.RoundToInt((borderBounds.center.z - terrain.transform.position.z) / terrainData.size.z * terrainData.heightmapResolution);
-
-        int flattenWidth = Mathf.RoundToInt(borderBounds.size.x / terrainData.size.x * terrainData.heightmapResolution);
-        int flattenHeight = Mathf.RoundToInt(borderBounds.size.z / terrainData.size.z * terrainData.heightmapResolution);
-
-        // Get heightmap data
-        int heightmapX = Mathf.Clamp(terrainPosX - flattenWidth / 2, 0, terrainData.heightmapResolution - flattenWidth);
-        int heightmapZ = Mathf.Clamp(terrainPosZ - flattenHeight / 2, 0, terrainData.heightmapResolution - flattenHeight);
-        float[,] heights = terrainData.GetHeights(heightmapX, heightmapZ, flattenWidth, flattenHeight);
-
-        // Flatten terrain to the minimum height in the current region
-        float minHeight = heights.Cast<float>().Min();
-        for (int x = 0; x < heights.GetLength(0); x++)
-        {
-            for (int z = 0; z < heights.GetLength(1); z++)
-            {
-                heights[x, z] = minHeight;
-            }
-        }
-
-        // Set the flattened heights back to the terrain
-        terrainData.SetHeights(heightmapX, heightmapZ, heights);
-
-        Debug.Log($"Flattened terrain for city based on border bounds: {borderBounds}");
-
-        yield return null;
-    }
-
-    // Get the bounding box for the border object
-    private Bounds GetBoundingBox(GameObject borderObject)
-    {
-        Renderer[] renderers = borderObject.GetComponentsInChildren<Renderer>();
-        if (renderers.Length > 0)
-        {
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-            {
-                bounds.Encapsulate(renderers[i].bounds);
-            }
-            return bounds;
-        }
-        else
-        {
-            Debug.LogError("No renderers found on border object.");
-            return new Bounds(Vector3.zero, Vector3.zero);
         }
     }
 }

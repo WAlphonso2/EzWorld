@@ -9,6 +9,7 @@ public class WorldInfo
     public float[,] heightMap; 
     public List<ObjectGeneratorData> objectList;
     public CityGeneratorData cityData;
+    public AtmosphereGeneratorData atmosphereGeneratorData;
 }
 
 [System.Serializable]
@@ -121,4 +122,16 @@ public class ObjectGeneratorData
     public float Rz = 0;
     public string name = "";
     public float scale = 1.0f;
+}
+
+[System.Serializable]
+public class AtmosphereGeneratorData
+{
+    public float timeOfDay = 12;
+    public float sunSize = .05f;
+    public Color skyTint = Color.gray;
+    public float atmosphericThickness = 1;
+    public float exposure = 1;
+    public float fogIntensity = 0;
+    public Color fogColor = Color.gray;
 }
