@@ -36,7 +36,7 @@ def parse_description():
     return a JSON object with parameters required for generating terrain. 
     Make sure that the values for each parameter fall within reasonable ranges to avoid any out-of-bounds issues. 
     If the description for the terrain does not need tree or grass like dessert(height 162, octaves 8, ) or snow unles the user specicly said, do not add( make the values zero's).
-    Make sure if the user say dont add <object> make sure to set the value to zero, for exampl if the user say dont add tree or grass or water(etc) make it zero.
+    Make sure if the user says don't add <object> make sure to set the value to zero, for example if the user say don't add trees or grass or water(etc) make it zero.
     Please use the following guidelines for each module:
     If the description contains multiple types of terrain (e.g., 'mountain' and 'grass field flat'), 
     generate separate terrainData objects for each.
@@ -147,8 +147,22 @@ def parse_description():
     - randomize and autoUpdate should be true or false.
     
     ObjectData:
-    Multiplle copies of objects are allowed to be generated at a time.
+    Multiple copies of objects are allowed to be generated at a time.
     - name: The name of the object. Must be in {object_set}
+    - x: The x position of the center of the object, 0<x<1024
+    - y: The y position of the center of the object, 0<y<1024
+    - Rx: The rotation of the object around the x axis, 0<Rx<360
+    - Ry: The rotation of the object around the y axis, 0<Ry<360
+    - Rz: The rotation of the object around the z axis, 0<Rz<360
+    - scale: The scale of the model size, as a multiple of the model, 0 < scale < 4, typically 1
+
+    GeneratedObjectData:
+    If an object is desired, detail specifically what the object should be like, such that Open AI's Shap-E is able
+    to create a nice looking object from your description. Keep this list as small as possible, since generating objects
+    takes a long time. If a desired object is similar to one in {object_set}, use that one instead. For now, only return "gaming_setup.obj"
+    as the file_name.
+    - description: The description of the object
+    - file_name: The file name for the object to be stored at, as a .obj file
     - x: The x position of the center of the object, 0<x<1024
     - y: The y position of the center of the object, 0<y<1024
     - Rx: The rotation of the object around the x axis, 0<Rx<360
@@ -222,19 +236,33 @@ def parse_description():
                 }}
             }},
             ...
-        ]
+        ],
         "objectList": [
-        {{
-            "name": string,
-            "x": float,
-            "y": float,
-            "Rx": float,
-            "Ry": float,
-            "Rz": float,
-            "scale": float
-        }},
-        ...
-    ]
+            "objectGeneratorData":{{
+                "name": string,
+                "x": float,
+                "y": float,
+                "Rx": float,
+                "Ry": float,
+                "Rz": float,
+                "scale": float
+            }},
+            ...
+        ],
+        "generatedObjectList": [
+            "generatedObjectData:{{
+                "description": string,
+                "file_name": string,
+                "name": string,
+                "x": float,
+                "y": float,
+                "Rx": float,
+                "Ry": float,
+                "Rz": float,
+                "scale": float
+           }},
+            ...
+        ]
     }}
 
 

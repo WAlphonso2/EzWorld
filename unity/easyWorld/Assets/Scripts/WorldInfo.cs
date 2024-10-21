@@ -8,6 +8,7 @@ public class WorldInfo
     public List<CustomTerrainData> terrainsData;
     public float[,] heightMap; 
     public List<ObjectGeneratorData> objectList;
+    public List<GeneratedObjectGeneratorData> generatedObjectList;
 }
 
 [System.Serializable]
@@ -106,5 +107,17 @@ public class ObjectGeneratorData
     public float Ry = 0;
     public float Rz = 0;
     public string name = "";
+    public float scale = 1.0f;
+}
+[System.Serializable]
+public class GeneratedObjectGeneratorData
+{
+    public string description = "";
+    public string file_name = "";
+    public float x = 0;
+    public float y = 0;
+    public float Rx = 0;
+    public float Ry = 0;
+    public float Rz = 0;
     public float scale = 1.0f;
 }
