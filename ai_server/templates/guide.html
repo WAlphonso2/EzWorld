@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide - Terrain Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('play') }}">Play</a>
+        <a href="{{ url_for('guide') }}">Guide</a>
+        <a href="{{ url_for('contact') }}">Contact Us</a>
+    </nav>
+
+    <div class="container">
+        <h1>Terrain Generator Guide</h1>
+        <p class="info">Follow this guide to create the perfect terrain by describing what features to include, what to avoid, and how to set up the environment.</p>
+
+        <h2>1. Basic Terrain Input</h2>
+        <p>The following parameters must be provided for any terrain:</p>
+        <ul>
+            <li><strong>Width & Height:</strong> Specify the size of the terrain (e.g., 512 to 1024 units).</li>
+            <li><strong>Depth:</strong> Controls the maximum height. Enter a value between 65 and 200 units.</li>
+            <li><strong>Octaves:</strong> The level of detail. Use values between 1 and 15.</li>
+            <li><strong>Scale:</strong> Controls the size of terrain features. Use values between 70 and 500.</li>
+        </ul>
+
+        <h2>2. Describing Your Terrain</h2>
+        <p>Use descriptive terms to specify the type of terrain you want to generate. Some examples:</p>
+        <ul>
+            <li><strong>Desert:</strong> No trees or grass unless specifically requested.</li>
+            <li><strong>Mountain:</strong> Adds elevation with rocky textures and optional snow.</li>
+            <li><strong>Forest:</strong> Includes grass and trees of varying density.</li>
+            <li><strong>Snow:</strong> Only snow textures unless additional textures are requested.</li>
+        </ul>
+        <p>If you want certain objects removed (e.g., "no trees, no grass"), specify this in your description, and the terrain generator will adjust accordingly.</p>
+
+        <h2>3. Textures and Surface Features</h2>
+        <ul>
+            <li><strong>Allowed Textures:</strong> grass, desert, snow, mud, rock, sand, forest floor, mountain rock, dirt, dead grass.</li>
+            <li><strong>Multiple Textures:</strong> Mention multiple textures if you want a combination (e.g., "desert with patches of dead grass").</li>
+        </ul>
+        <p>Each texture will be adjusted based on height curves, with smooth transitions between textures.</p>
+
+        <h2>4. Adding Grass or Trees</h2>
+        <p>When adding vegetation, the following rules apply:</p>
+        <ul>
+            <li><strong>Grass Density:</strong> Higher values (700 to 1000) mean more dense grass.</li>
+            <li><strong>Tree Density:</strong> Use low density (max 0.3) for sparse forests or high density (1) for dense forests.</li>
+            <li><strong>Steepness Limits:</strong> Grass or trees will not appear on slopes steeper than 90 degrees.</li>
+            <li><strong>Height Range:</strong> Vegetation will grow only within specified height limits (e.g., -200 to 200 units).</li>
+        </ul>
+
+        <h2>5. Special Cases: Cities</h2>
+        <p>If you mention a city or city-like features, use the following options:</p>
+        <ul>
+            <li><strong>City Size:</strong> Choose from Small, Medium, Large, or Very Large.</li>
+            <li><strong>Satellite City:</strong> Specify if the city should include satellite areas connected by highways.</li>
+            <li><strong>Downtown Area:</strong> Indicate if the city should have a downtown metropolitan area.</li>
+            <li><strong>Traffic System:</strong> Add a traffic system if the city needs to simulate vehicles and movement.</li>
+            <li><strong>Traffic Hand:</strong> Specify "RightHand" or "LeftHand" traffic rules.</li>
+        </ul>
+
+        <h2>6. Water Features</h2>
+        <p>Water can be added to the terrain in different forms:</p>
+        <ul>
+            <li><strong>Water Types:</strong> Choose from river, lake, or ocean. If you don't want water, specify "none".</li>
+            <li><strong>Water Level:</strong> For lakes or oceans, specify the water height (e.g., between 50 and 0).</li>
+            <li><strong>River Width:</strong> Specify the width range (e.g., 100 to 1000 units).</li>
+        </ul>
+
+        <h2>7. Atmosphere and Time of Day</h2>
+        <p>Customize the environment by specifying the time of day and weather effects:</p>
+        <ul>
+            <li><strong>Time of Day:</strong> Use values from 0 (midnight) to 24 (midnight). For example, 12 is noon.</li>
+            <li><strong>Sun Size:</strong> Enter a value between 0 and 1 (default is 0.05).</li>
+            <li><strong>Fog Intensity:</strong> Use values between 0 (no fog) and 0.5 (dense fog).</li>
+            <li><strong>Sky Tint:</strong> Provide RGB values for the sky color (e.g., r=0.5, g=0.5, b=0.5).</li>
+        </ul>
+
+        <h2>8. Final Tips for Generating Terrains</h2>
+        <p>Keep the following tips in mind when creating your terrain:</p>
+        <ul>
+            <li><strong>Randomization:</strong> Enable randomization for varied results each time the terrain is generated.</li>
+            <li><strong>Use Falloff Maps:</strong> Controls smoothness at terrain edges, usually <code>true</code>.</li>
+            <li><strong>Multiple Objects:</strong> Add rocks, trees, or other elements by describing their distribution.</li>
+            <li><strong>Precision Descriptions:</strong> The more specific your description, the more accurate the generated terrain will be.</li>
+        </ul>
+
+        <footer>© 2024 Terrain Generator. All rights reserved.</footer>
+    </div>
+</body>
+
+</html>

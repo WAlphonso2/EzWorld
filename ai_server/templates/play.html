@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play - Terrain Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('play') }}">Play</a>
+        <a href="{{ url_for('guide') }}">Guide</a>
+        <a href="{{ url_for('contact') }}">Contact Us</a>
+    </nav>
+
+    <div class="container">
+        <h1>Play and Generate Terrain</h1>
+        <div id="unityContainer">
+            <iframe src="{{ url_for('static', filename='WebGL/index.html') }}"></iframe>
+        </div>
+    </div>
+
+    <footer>© 2024 Terrain Generator. All rights reserved.</footer>
+</body>
+
+</html>

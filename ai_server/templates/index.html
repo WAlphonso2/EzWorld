@@ -1,51 +1,278 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terrain Generator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Basic Meta Tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!-- Site Title -->
+    <title>Terrain Generator - Home</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/jquery.mCustomScrollbar.min.css') }}">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='images/fevicon.png') }}" type="image/gif" />
 </head>
+
 <body>
-    <h1>Generate Terrain</h1>
+    <!-- Header Section -->
+    <div class="header_section">
+        <div class="header_main">
+            <div class="mobile_menu">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <div class="logo_mobile">
+                        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/logo1.png') }}"></a>
+                    </div>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item active"><a href="{{ url_for('index') }}">Home</a></li>
+                            <li class="nav-item"><a href="{{ url_for('play') }}">Play</a></li>
+                            <li class="nav-item"><a href="{{ url_for('guide') }}">Guide</a></li>
+                            <li class="nav-item"><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="container-fluid">
+                <div class="logo">
+                    <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/logo1.png') }}"></a>
+                </div>
+                <div class="menu_main">
+                    <ul>
+                        <li class="active"><a href="{{ url_for('index') }}">Home</a></li>
+                        <li><a href="{{ url_for('guide') }}">Guide</a></li>
+                        <li><a href="{{ url_for('play') }}">Play</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-    <!-- Form for entering terrain description -->
-    <form id="terrainForm">
-        <label for="description">Describe the terrain:</label>
-        <input type="text" id="description" name="description" required>
-        <button type="submit">Generate Terrain</button>
-    </form>
-
-    <!-- Div to display AI output or error messages -->
-    <div id="response"></div>
-
-    <!-- WebGL game container -->
-    <h2>WebGL Terrain Preview</h2>
-    <div id="unityContainer">
-        <iframe src="{{ url_for('static', filename='WebGL/index.html') }}" width="960" height="600"></iframe>
+        <!-- Banner Section -->
+        <div class="banner_section layout_padding">
+            <div id="main_slider" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="container">
+                            <h1 class="banner_taital">Generate 3D Worlds</h1>
+                            <p class="banner_text">Create stunning landscapes using your imagination.</p>
+                            <div class="read_bt"><a href="{{ url_for('play') }}">Play</a></div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="container">
+                            <h1 class="banner_taital">Customizable Terrains</h1>
+                            <p class="banner_text">Modify terrains with detailed parameters for a personalized experience.</p>
+                            <div class="read_bt"><a href="{{ url_for('guide') }}">Learn More</a></div>
+                        </div>
+                    </div>
+                </div>
+                <a class="carousel-control-prev" href="#main_slider" role="button" data-slide="prev">
+                    <i class="fa fa-plus" style="font-size:24px; color: #fff;"></i>
+                </a>
+                <a class="carousel-control-next" href="#main_slider" role="button" data-slide="next">
+                    <i class="fa fa-minus" style="font-size:24px; color: #fff;"></i>
+                </a>
+            </div>
+        </div>
     </div>
 
-    <script>
-        document.getElementById('terrainForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const description = document.getElementById('description').value;
+     <!-- background bg start -->
+     <div class="background_bg">
+            <!-- Terrain Types Section Start -->
+            <div class="terrain_section layout_padding">
+                <div class="container">
+                    <h1 class="terrain_title">01<br>Explore Terrain Types</h1>
+                    <div class="terrain_section_2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="image_1">
+                                    <img src="{{ url_for('static', filename='images/desert.png') }}" alt="Desert Terrain">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="terrain_text">Desert Terrain</h4>
+                                <p class="terrain_description">
+                                    Generate vast, arid landscapes with sand dunes and dry grass. Customize your desert terrain with optional rocks and minimal vegetation.
+                                </p>
+                                <h4 class="rate_text"><span style="color: #b60213;">Explore</span></h4>
+                                <div class="read_bt1"><a href="{{ url_for('play') }}">Try Now</a></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="terrain_section_3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="terrain_text">city</h4>
+                                <p class="terrain_description">
+                                    Build a vibrant city with gleaming skyscrapers, bustling streets, and lush parks. Adjust the architectural styles and layout to shape your unique urban environment.                                </p>
+                                <h4 class="rate_text"><span style="color: #b60213;">Explore</span></h4>
+                                <div class="read_bt1"><a href="{{ url_for('play') }}">Try Now</a></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="image_2">
+                                    <img src="{{ url_for('static', filename='images/city.png') }}" alt="Mountain Terrain">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="seemore_bt"><a href="{{ url_for('guide') }}">Learn More</a></div>
+                </div>
+            </div>
+            <!-- Terrain Types Section End -->
+        </div>
 
-            fetch('/parse_description', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ description: description })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('response').innerHTML = JSON.stringify(data);
-                // Optionally, send this data to the WebGL game via Unity API if necessary
-            })
-            .catch(error => {
-                document.getElementById('response').innerHTML = 'Error generating terrain';
-            });
-        });
-    </script>
+        <!-- About Section Start -->
+        <div class="about_section layout_padding">
+            <div class="container">
+                <h1 class="terrain_title">02<br>About Terrain Generator</h1>
+                <div class="about_section_2">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="about_text">
+                                Welcome to our 3D Terrain Generator! Our platform allows you to create stunning, realistic landscapes by simply describing your desired environment. 
+                                Whether it's majestic mountains, serene rivers, or vast deserts, the AI transforms your ideas into immersive 3D worlds.
+                            </p>
+                            <div class="read_bt1"><a href="{{ url_for('guide') }}">Learn More</a></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="image_3">
+                                <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="About Terrain Generation">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about_section_3">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="border_main">
+                                <div class="image_4">
+                                    <img src="{{ url_for('static', filename='images/mountain-icon.png') }}" alt="Mountain Terrain">
+                                    <p class="terrain_feature">Mountains</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border_main">
+                                <div class="image_4">
+                                    <img src="{{ url_for('static', filename='images/desert.png') }}" alt="Desert Terrain">
+                                    <p class="terrain_feature">Deserts</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border_main">
+                                <div class="image_4">
+                                    <img src="{{ url_for('static', filename='images/forest-icon.png') }}" alt="Forest Terrain">
+                                    <p class="terrain_feature">Forests</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border_main">
+                                <div class="image_4">
+                                    <img src="{{ url_for('static', filename='images/city-icon.png') }}" alt="City Generation">
+                                    <p class="terrain_feature">Cities</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- About Section End -->
+
+
+    <!-- Contact Section Start -->
+        <div class="contact_section layout_padding">
+            <div class="container">
+                <h1 class="terrain_title">04<br>Get In Touch</h1>
+                <p class="contact_description">
+                    Have questions, feedback, or feature requests? Reach out to us! We're here to help you with everything related to terrain generation and 3D world creation.
+                </p>
+            </div>
+            <div class="contact_section_2">
+                <div class="container-fluid">
+                    <div class="row">
+                        <!-- Contact Form -->
+                        <div class="col-md-6">
+                            <form action="{{ url_for('contact') }}" method="POST" class="mail_section_1">
+                                <input type="text" class="mail_text" placeholder="Your Name" name="name" required>
+                                <input type="text" class="mail_text" placeholder="Phone Number" name="phone">
+                                <input type="email" class="mail_text" placeholder="Email" name="email" required>
+                                <textarea class="massage-bt" placeholder="Your Message" rows="5" id="comment" name="message" required></textarea>
+                                <button type="submit" class="send_bt">SEND</button>
+                            </form>
+                        </div>
+                        <!-- Map Section -->
+                        <div class="col-md-6 padding_right_0">
+                            <div class="map_section">
+                                <img src="{{ url_for('static', filename='images/map-img.png') }}" alt="Map Location">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <!-- contact section end -->
+     </div>
+     <!-- background bg end -->
+
+    <!-- Footer Section -->
+    <div class="footer_section layout_padding">
+        <div class="container">
+            <h3 class="follow_text">Follow Us</h3>
+            <div class="social_icon">
+                <ul>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/fb-icon.png') }}"></a></li>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/twitter-icon.png') }}"></a></li>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/linkedin-icon.png') }}"></a></li>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/instagram-icon.png') }}"></a></li>
+                </ul>
+            </div>
+            <div class="location_main">
+                <div class="location_left">
+                    <a href="#"><img src="{{ url_for('static', filename='images/map-icon.png') }}"><span>Location</span></a>
+                </div>
+                <div class="location_middle">
+                    <a href="#"><img src="{{ url_for('static', filename='images/mail-icon.png') }}"><span>Email: ezworld@gmail.com</span></a>
+                </div>
+                <div class="location_right">
+                    <a href="#"><img src="{{ url_for('static', filename='images/call-icon.png') }}"><span>Call: +01 1234567890</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copyright Section -->
+    <div class="copyright_section">
+        <div class="container">
+            <p>© 2024 Terrain Generator. All Rights Reserved.</p>
+        </div>
+    </div>
+
+    <!-- JS Files -->
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.0.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/plugin.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.mCustomScrollbar.concat.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/owl.carousel.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js"></script>
 </body>
+
 </html>

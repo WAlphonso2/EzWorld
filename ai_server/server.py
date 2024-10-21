@@ -3,6 +3,7 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 import json
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -11,6 +12,7 @@ load_dotenv()
 genai.configure(api_key=os.environ.get("API_KEY"))
 
 app = Flask(__name__)
+CORS(app)
 
 # Initialize the Gemini model
 model = genai.GenerativeModel("gemini-1.5-flash")
@@ -19,6 +21,22 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 @app.route('/')
 def index():
     return render_template('index.html')
+
+# Play Route
+@app.route('/play')
+def play():
+    return render_template('play.html')
+
+# Guide Route
+@app.route('/guide')
+def guide():
+    return render_template('guide.html')
+
+# Contact Us Route
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
 
 @app.route('/parse_description', methods=['POST'])
 def parse_description():
@@ -38,11 +56,13 @@ def parse_description():
     If the description for the terrain does not need tree or grass like dessert(height 162, octaves 8, ) or snow unles the user specicly said, do not add( make the values zero's).
     Make sure if the user say dont add <object> make sure to set the value to zero, for exampl if the user say dont add tree or grass or water(etc) make it zero.
     Please use the following guidelines for each module:
-    If the description contains multiple types of terrain (e.g., 'mountain' and 'grass field flat'), generate separate terrainData objects for each.
-    If the user mentions a city, make sure to add city generation parameters.
+    
+    Rules:
+    - If the user mentions a city or related attributes (e.g., traffic system, downtown, satellite city), include the "cityData" and "terrainsData" (make sure the TreeGenerator is all zero) field.
+    - If the user describes terrain features (e.g., mountains, rivers, grass fields) without a city, include only the "terrainsData" field.
+    - Ensure if "terrainsData" is present in the JSON then remove "cityData".
+    - Make sure the cityData is not duplicated. If multiple cities are requested, set "withSatelliteCity" to true.
 
-    Each terrain should have its own HeightsGenerator, TexturesGenerator, GrassGenerator, TreeGenerator, and WaterGenerator data.
-    Please use the following structure for each terrain:
 
     HeightsGenerator:
     Width: Determines the width of the terrain in units.
@@ -259,15 +279,6 @@ def parse_description():
                 "b": float
             }}
         }},
-        "cityData": {{
-            "citySize": string,
-            "withSatelliteCity": boolean,
-            "borderFlat": boolean,
-            "withDowntownArea": boolean,
-            "downtownSize": float,
-            "addTrafficSystem": boolean,
-            "trafficHand": string
-        }},
         "objectList": [
         {{
             "name": string,
@@ -280,12 +291,23 @@ def parse_description():
         }},
         ...
         ]
+        "cityData": {{
+            "citySize": string,
+            "withSatelliteCity": boolean,
+            "borderFlat": boolean,
+            "withDowntownArea": boolean,
+            "downtownSize": float,
+            "addTrafficSystem": boolean,
+            "trafficHand": string
+        }},
+
     }}
 
-
+    The structure should be well-formed, and all boolean values should be correctly set.
     Use the following description to generate appropriate values:
     "{description}"
     """
+    
     # Call the Gemini API to generate the content
     response = model.generate_content(prompt)
 
@@ -293,7 +315,21 @@ def parse_description():
     print("API Response:", response.text)
 
     # Clean the response by removing any triple backticks if present
-    return response.text.strip().strip('```json').strip('```')
+    cleaned_response = response.text.strip().strip('```json').strip('```')
+
+    # Load the cleaned response into a Python dictionary
+    try:
+        generated_data = json.loads(cleaned_response)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+        return jsonify({"error": "Invalid JSON response from AI."}), 500
+
+    # # Enforce the rule: either cityData or terrainsData, not both
+    # if "cityData" in generated_data and "terrainsData" in generated_data:
+    #     print("Both cityData and terrainsData detected. Prioritizing cityData.")
+    #     del generated_data["terrainsData"]  # Remove terrainsData to prioritize cityData
+
+    return jsonify(generated_data)
 
 
 

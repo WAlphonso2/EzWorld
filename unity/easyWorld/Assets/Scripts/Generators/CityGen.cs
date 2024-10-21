@@ -7,9 +7,16 @@ public class CityGen : MonoBehaviour
     public GameObject cityGeneratorPrefab;  // Assign your CityGenerator prefab here
     public GameObject trafficSystemPrefab;  // Assign your TrafficSystem prefab here
     public GameObject oceanPrefab;          // Assign your Ocean prefab here
-
+    public Transform citySpawnPoint;
     public IEnumerator GenerateCity(WorldInfo worldInfo, int terrainIndex, Terrain terrain)
     {
+        // Check if terrain is valid before proceeding
+        if (terrain == null)
+        {
+            Debug.LogError("Invalid terrain. Cannot generate city.");
+            yield break;
+        }
+
         // Calculate the center of the terrain to position the city
         Vector3 terrainCenter = new Vector3(
             terrain.transform.position.x + terrain.terrainData.size.x / 2,
@@ -32,21 +39,30 @@ public class CityGen : MonoBehaviour
                 // Move the City-Maker to the center of the terrain after generation
                 MoveCityMakerToPosition(cityGen.cityMaker, terrainCenter);
 
-                // If downtown area is enabled, generate buildings
+                // Generate buildings if required
                 if (worldInfo.cityData.withDowntownArea)
                 {
                     cityGen.GenerateAllBuildings(worldInfo.cityData.withDowntownArea, worldInfo.cityData.downtownSize);
                 }
 
-                // Add the traffic system after generating the city
+                // Add traffic system if enabled
                 if (worldInfo.cityData.addTrafficSystem)
                 {
                     yield return StartCoroutine(AddTrafficSystem(worldInfo.cityData.trafficHand, terrainCenter));
                 }
 
-                // Now, remove the terrain and add the ocean (terrain is removed *after* everything else)
-                yield return new WaitForEndOfFrame(); // Ensures generation has fully completed
-                RemoveTerrain(terrain);
+                // Use the city's spawn point for player positioning
+                citySpawnPoint = cityGenInstance.transform.Find("CitySpawnPoint");
+                if (citySpawnPoint == null)
+                {
+                    Debug.LogWarning("CitySpawnPoint not found. Using city center for spawn.");
+                    citySpawnPoint = new GameObject("CitySpawnPoint").transform;
+                    citySpawnPoint.position = terrainCenter;
+                }
+
+                // Ensure all tasks are complete before removing terrain
+                yield return new WaitForEndOfFrame();
+                RemoveTerrain(terrain);  // Safely remove terrain now
                 AddOcean(terrainCenter, cityGen.cityMaker.transform.position.y);
             }
         }
@@ -58,7 +74,6 @@ public class CityGen : MonoBehaviour
         yield return null;
     }
 
-    // Move the City-Maker to the center of the terrain
     private void MoveCityMakerToPosition(GameObject cityMaker, Vector3 cityPosition)
     {
         if (cityMaker != null)
@@ -72,10 +87,8 @@ public class CityGen : MonoBehaviour
         }
     }
 
-    // Method to add traffic system after the city is generated
     private IEnumerator AddTrafficSystem(string trafficHand, Vector3 cityPosition)
     {
-        // Instantiate or find the traffic system
         FCG.TrafficSystem trafficSystem = FindObjectOfType<FCG.TrafficSystem>();
         if (trafficSystem == null && trafficSystemPrefab != null)
         {
@@ -85,22 +98,18 @@ public class CityGen : MonoBehaviour
 
         if (trafficSystem == null)
         {
-            Debug.LogError("TrafficSystemPrefab not found or failed to instantiate.");
+            Debug.LogError("TrafficSystemPrefab not found.");
             yield break;
         }
 
-        // Set traffic hand
         int hand = trafficHand.ToLower() == "righthand" ? 0 : 1;
         trafficSystem.DeffineDirection(hand);
-
-        // Load cars based on traffic hand
         trafficSystem.LoadCars(hand);
 
         Debug.Log("Traffic system and vehicles added.");
         yield return null;
     }
 
-    // Remove the terrain from the scene
     private void RemoveTerrain(Terrain terrain)
     {
         if (terrain != null)
@@ -110,19 +119,17 @@ public class CityGen : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Terrain not found!");
+            Debug.LogError("Terrain not found.");
         }
     }
 
-    // Add an ocean to replace the terrain, and place it 0.5 units below the city's height
     private void AddOcean(Vector3 position, float cityHeight)
     {
         if (oceanPrefab != null)
         {
-            // Set the ocean 0.5 units below the city's height
             Vector3 oceanPosition = new Vector3(position.x, cityHeight - 0.5f, position.z);
             Instantiate(oceanPrefab, oceanPosition, Quaternion.identity);
-            Debug.Log("Ocean added at position " + oceanPosition);
+            Debug.Log("Ocean added at " + oceanPosition);
         }
         else
         {
@@ -130,7 +137,6 @@ public class CityGen : MonoBehaviour
         }
     }
 
-    // Helper method to map city size string to integer
     private int GetCitySize(string size)
     {
         switch (size.ToLower())
@@ -140,8 +146,8 @@ public class CityGen : MonoBehaviour
             case "large": return 4;
             case "very large": return 5;
             default:
-                Debug.LogError($"Unknown city size: {size}, defaulting to Small.");
-                return 1; // Default to Small
+                Debug.LogError($"Unknown city size: {size}. Defaulting to Small.");
+                return 1;
         }
     }
 }

@@ -1729,6 +1729,7 @@ MonoBehaviour:
   AutoUpdate: 0
   TreePrototypes:
   - {fileID: 299712424454941021, guid: 7d4f999abb893d4449db2f5cab3342b7, type: 3}
+  TreePrototypes2: []
 --- !u!4 &771035236
 Transform:
   m_ObjectHideFlags: 0
@@ -2152,7 +2153,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 4
+          m_IntArgument: 5
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -2486,7 +2487,7 @@ Transform:
   m_GameObject: {fileID: 1046912991}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 1100, y: 70, z: 716}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2507,6 +2508,7 @@ MonoBehaviour:
   cityGeneratorPrefab: {fileID: 147834, guid: 913769814a248de4db031a83080046b2, type: 3}
   trafficSystemPrefab: {fileID: 1221417207324282, guid: a8566725e98545841a4f4fa06a6f20f8, type: 3}
   oceanPrefab: {fileID: 6013632388104371084, guid: 6e0965b76baec374d9a8e0c82f9033cb, type: 3}
+  citySpawnPoint: {fileID: 268560361}
 --- !u!1 &1058446279
 GameObject:
   m_ObjectHideFlags: 0
@@ -2899,7 +2901,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   generators:
   - {fileID: 313846097}
-  atmosphereGenerator: {fileID: 0}
+  atmosphereGenerator: {fileID: 905358391}
   characterSelectionManager: {fileID: 301056553}
 --- !u!4 &1455148381
 Transform:

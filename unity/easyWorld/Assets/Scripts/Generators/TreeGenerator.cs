@@ -77,7 +77,7 @@ namespace Assets.Scripts.MapGenerator.Generators
 
         // Tree counter
         int treeCount = 0;
-        int maxTreeLimit = 500;
+        int maxTreeLimit = 90000;
 
         // Iterate over terrain points to place trees
         for (int x = 0; x < terrainData.alphamapWidth; x++)

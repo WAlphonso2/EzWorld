@@ -52,20 +52,21 @@ public class TerrainGenerator : Generator
             yield break;
         }
 
-        // Generate the terrain components (heights, textures, etc.)
-        yield return StartCoroutine(heightsGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(texturesGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(treeGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(grassGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(pathGenerator.Generate(worldInfo, terrainIndex));
-        yield return StartCoroutine(waterGenerator.Generate(worldInfo, terrainIndex));
-
-        // Check if city generation is requested in the WorldInfo
         if (worldInfo.cityData != null && cityGenerator != null)
         {
-            // Generate the city after terrain
             yield return StartCoroutine(cityGenerator.GenerateCity(worldInfo, terrainIndex, terrain));
         }
+        else
+        {
+            // Only generate terrain if no city is requested
+            yield return StartCoroutine(heightsGenerator.Generate(worldInfo, terrainIndex));
+            yield return StartCoroutine(texturesGenerator.Generate(worldInfo, terrainIndex));
+            yield return StartCoroutine(grassGenerator.Generate(worldInfo, terrainIndex));
+            yield return StartCoroutine(treeGenerator.Generate(worldInfo, terrainIndex));
+            yield return StartCoroutine(pathGenerator.Generate(worldInfo, terrainIndex));
+            yield return StartCoroutine(waterGenerator.Generate(worldInfo, terrainIndex));
+        }
+
 
         // Call object generator after the city is generated to place objects
         yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));

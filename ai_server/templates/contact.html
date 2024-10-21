@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Terrain Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('play') }}">Play</a>
+        <a href="{{ url_for('guide') }}">Guide</a>
+        <a href="{{ url_for('contact') }}">Contact Us</a>
+    </nav>
+
+    <div class="container">
+        <h1>Contact Us</h1>
+        <p class="info">Have any questions? Reach out to us at <a href="mailto:support@terrain.com">support@terrain.com</a>.</p>
+    </div>
+
+    <footer>© 2024 Terrain Generator. All rights reserved.</footer>
+</body>
+
+</html>
