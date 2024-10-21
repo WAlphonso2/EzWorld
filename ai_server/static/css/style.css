@@ -417,7 +417,7 @@ button {
 }
 /* background bg section end */
 
-/* watchs section start */
+/*  section start */
 
 .terrain_section{
     width: 100%;
@@ -545,9 +545,9 @@ h1.terrain_title::after {
     background-color: #b60213;
 }
 
-/* watchs section end */
+/*  section end */
 
-/* about section start */
+/*  section start */
 
 .about_section{
     width: 100%;
@@ -582,10 +582,24 @@ h1.terrain_title::after {
     text-align: center;
     min-height: 140px;
 }
+.play_title {
+    margin-top: 5%;
+    text-align: center;
+    color: white;
+}
 
-/* about section end */
+.unity_frame iframe {
+    width: 100%;
+    height: 90vh;
+    min-height: 600px;
+    border-radius: 10px;
+    border: none;
+    overflow: hidden;
+}
 
-/* testimonial section start */
+/*  section end */
+
+/*  section start */
 .testimonial_section{
     width: 100%;
     float: left;
@@ -672,9 +686,9 @@ h1.terrain_title::after {
     color: #ffffff;
     background-color: #b60213;
 }
-/* testimonial section end */
+/*  section end */
 
-/* contact section start */
+/*  section start */
 
 .contact_section {
     width: 100%;
@@ -734,8 +748,9 @@ textarea#comment::placeholder {
     float: left;
 }
 
-.send_bt button {
-    width: 100%;
+.send_bt {
+    width: 170px;
+    margin-top: 40px;
     background-color: #a40514;
     color: #e1e7d8;
     text-align: center;
@@ -748,10 +763,11 @@ textarea#comment::placeholder {
     transition: background-color 0.3s, color 0.3s;
 }
 
-.send_bt button:hover {
+.send_bt:hover {
     background-color: #ffffff;
     color: #696868;
 }
+
 
 .contact_description{
     color: #e1e7d8;

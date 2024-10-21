@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, flash, redirect, render_template, request, jsonify
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -35,6 +35,16 @@ def guide():
 # Contact Us Route
 @app.route('/contact')
 def contact():
+    if request.method == 'POST':
+        name = request.form['name']
+        phone = request.form['phone']
+        email = request.form['email']
+        message = request.form['message']
+
+        # Store the data or send an email as needed
+        flash('Your message has been sent successfully!', 'success')
+        return redirect('/contact')
+
     return render_template('contact.html')
 
 
