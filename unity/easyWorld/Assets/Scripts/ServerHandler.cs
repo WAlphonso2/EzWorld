@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ServerHandler : MonoBehaviour
 {
-    public bool allowUnityStartServer = true;
+    public bool allowServerStart = true;
     public string EXECUTABLE = "python";
     public string SERVER_DIRECTORY = "ai_server";
     public string SERVER_NAME = "server.py";
@@ -22,9 +22,9 @@ public class ServerHandler : MonoBehaviour
 
     void TryStartServer()
     {
-        if (!allowUnityStartServer)
+        if (!allowServerStart)
         {
-            UnityEngine.Debug.Log("Unity won't start server, ensure that you are running locally");
+            UnityEngine.Debug.Log("Server is disabled, not starting server");
             return;
         }
 
@@ -33,7 +33,7 @@ public class ServerHandler : MonoBehaviour
 
         if (!File.Exists(serverPath))
         {
-            UnityEngine.Debug.Log("Server path doesn't exist, cannot start server");
+            UnityEngine.Debug.Log("Server path doesn't exist, aborting server start");
             return;
         }
 
@@ -89,7 +89,7 @@ public class ServerHandler : MonoBehaviour
         // force quit server if its still running on application close
         if (pythonAIServer != null && !pythonAIServer.HasExited)
         {
-            UnityEngine.Debug.Log("Python server force killed because application was quit");
+            UnityEngine.Debug.Log("Python server force killed");
             CleanupProcess();
         }
     }
