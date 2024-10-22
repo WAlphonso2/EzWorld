@@ -83,6 +83,7 @@ public class HeightsGenerator : Generator
         worldInfo.heightMap = noiseMap;
 
         // Debugging: log the height map values for the first few points
+        /*
         Debug.Log($"Height map stored for Terrain {terrainIndex}. First 10 height values:");
         for (int y = 0; y < Mathf.Min(terrainData.heightsGeneratorData.height, 10); y++)
         {
@@ -91,6 +92,7 @@ public class HeightsGenerator : Generator
                 Debug.Log($"Height at [{x},{y}]: {worldInfo.heightMap[y, x]}");
             }
         }
+        */
 
         yield return null;
     }

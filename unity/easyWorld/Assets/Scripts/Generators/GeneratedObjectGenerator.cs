@@ -48,10 +48,9 @@ namespace Assets.Scripts.MapGenerator.Generators
             }
 
             //Call shape-e here with the object description and file name
-
             StartCoroutine(CreateObject(data));
 
-            GameObject go = Resources.load(data.filename); 
+            GameObject go = Resources.Load<GameObject>(data.file_name); 
             go.transform.localScale = new Vector3(data.scale, data.scale, data.scale);
 
             Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, 1024, 200, 1024); 
@@ -69,9 +68,9 @@ namespace Assets.Scripts.MapGenerator.Generators
                 return;
             }
 
-            UpdateTerrainHeightsForObject(terrain, go);
+            UpdateTerrainHeightsForObject(terrain, go, data);
 
-            PlaceObjectInWorld(go);
+            PlaceObjectInWorld(go, data, terrain);
 
             objectList.Add(go);
 
@@ -80,9 +79,9 @@ namespace Assets.Scripts.MapGenerator.Generators
 
         private IEnumerator CreateObject(GeneratedObjectGeneratorData data){
             
-            string fileName = $"GeneratedObjects/{data.filename}";
-
-            while(!System.IO.File.Exists(data.filename)){
+            string fileName = $"GeneratedObjects/{data.file_name}";
+            Debug.Log($"Generating at {data.file_name}");
+            while(!System.IO.File.Exists(data.file_name)){
                 yield return new WaitForSeconds(4);
             }
 
@@ -94,7 +93,7 @@ namespace Assets.Scripts.MapGenerator.Generators
          * Updates the terrain heights so that the object can be placed on a flat ground.
          * Every needed point on the terrain gets moved up, includes a 4 unit boundary around objects.
          */
-        private void UpdateTerrainHeightsForObject(Terrain terrain, GameObject go){
+        private void UpdateTerrainHeightsForObject(Terrain terrain, GameObject go, GeneratedObjectGeneratorData data){
             var renderer = go.GetComponent<MeshRenderer>();
             var length = renderer.bounds.size.x;
             var width = renderer.bounds.size.z;
@@ -115,7 +114,7 @@ namespace Assets.Scripts.MapGenerator.Generators
         /**
          * Places the object in the world.
          */
-        private void PlaceObjectInWorld(GameObject go){
+        private void PlaceObjectInWorld(GameObject go, GeneratedObjectGeneratorData data, Terrain terrain){
             go.transform.position = new Vector3(
                 data.x,
                 terrain.SampleHeight(new Vector3(data.x, 0, data.y)),
