@@ -1,9 +1,15 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:unity/easyWorld/Assets/Fantastic City Generator/BackGrounds/FBX.meta
 guid: 331cae666e06ac34db745cb13b3dbfbe
 folderAsset: yes
 timeCreated: 1519420164
 licenseType: Store
+========
+guid: 2dbab6d627dd60d46b4da00a55aa27ae
+folderAsset: yes
+>>>>>>>> origin/website:unity/easyWorld/Assets/Resources/Brick_House/FBX_Model.meta
 DefaultImporter:
+  externalObjects: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

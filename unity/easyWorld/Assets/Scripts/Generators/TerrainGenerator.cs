@@ -12,7 +12,11 @@ public class TerrainGenerator : Generator
     public PathGenerator pathGenerator;
     public RiverGenerator riverGenerator;
     public ObjectGenerator objectGenerator;
+<<<<<<< HEAD
     public CityGen cityGenerator;
+=======
+
+>>>>>>> origin/website
     public override void Clear()
     {
         for (int i = 0; i < 10; i++)
@@ -52,6 +56,7 @@ public class TerrainGenerator : Generator
             yield break;
         }
 
+<<<<<<< HEAD
         if (worldInfo.cityData != null && cityGenerator != null)
         {
             yield return StartCoroutine(cityGenerator.GenerateCity(worldInfo, terrainIndex, terrain));
@@ -70,6 +75,15 @@ public class TerrainGenerator : Generator
 
         // Call object generator after the city is generated to place objects
         yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));
+=======
+        yield return StartCoroutine(heightsGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(objectGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(texturesGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(treeGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(grassGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(pathGenerator.Generate(worldInfo, terrainIndex));
+        yield return StartCoroutine(waterGenerator.Generate(worldInfo, terrainIndex));
+>>>>>>> origin/website
     }
 
     // Static method to retrieve or create the terrain

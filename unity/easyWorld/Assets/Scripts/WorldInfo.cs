@@ -8,8 +8,11 @@ public class WorldInfo
     public List<CustomTerrainData> terrainsData;
     public float[,] heightMap; 
     public List<ObjectGeneratorData> objectList;
+<<<<<<< HEAD
     public CityGeneratorData cityData;
     public AtmosphereGeneratorData atmosphereGeneratorData;
+=======
+>>>>>>> origin/website
 }
 
 [System.Serializable]
@@ -122,6 +125,7 @@ public class ObjectGeneratorData
     public float Rz = 0;
     public string name = "";
     public float scale = 1.0f;
+<<<<<<< HEAD
 }
 
 [System.Serializable]
@@ -134,4 +138,6 @@ public class AtmosphereGeneratorData
     public float exposure = 1;
     public float fogIntensity = 0;
     public Color fogColor = Color.gray;
+=======
+>>>>>>> origin/website
 }

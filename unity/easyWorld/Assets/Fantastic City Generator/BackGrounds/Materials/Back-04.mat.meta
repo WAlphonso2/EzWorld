@@ -1,9 +1,16 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:unity/easyWorld/Assets/Fantastic City Generator/BackGrounds/Materials/Back-04.mat.meta
 guid: 88dde80f658db7c418e493f7ddf1d62d
 timeCreated: 1537937502
 licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: -1
+========
+guid: 1a5eeabbb3a2a1640af6e5de1133011f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+>>>>>>>> origin/website:unity/easyWorld/Assets/Resources/Brick_House/Materials/brick_house.mat.meta
   userData: 
   assetBundleName: 
   assetBundleVariant: 

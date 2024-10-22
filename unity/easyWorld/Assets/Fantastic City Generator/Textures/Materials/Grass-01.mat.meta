@@ -1,9 +1,16 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:unity/easyWorld/Assets/Fantastic City Generator/Textures/Materials/Grass-01.mat.meta
 guid: f9a48a42036ef934da02e5fe6da4f4c7
 timeCreated: 1567974432
 licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: -1
+========
+guid: 1cd256ba8acac3a4bb49758d889d920e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+>>>>>>>> origin/website:unity/easyWorld/Assets/Resources/Low Poly Houses Free Pack/Materials/mat main.mat.meta
   userData: 
   assetBundleName: 
   assetBundleVariant: 
