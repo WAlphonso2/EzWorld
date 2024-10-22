@@ -100,11 +100,11 @@ def parse_description():
 
     ### Rules:
     1. **City vs Terrain:**
-    - If the user mentions a city or related attributes (e.g., traffic system, downtown, satellite city), include both the **"cityData"** and **"terrainsData"** fields. Ensure that **TreeGenerator** parameters (like trees) are all set to **zero** for city generation.
+    - If the user mentions a city or related attributes (e.g., traffic system, downtown, satellite city), include **both** the **"cityData"** and **"terrainsData"** fields. Ensure that **TreeGenerator** parameters (like trees) are all set to **zero** for city generation.
     - If the user only describes terrain features (e.g., mountains, rivers, deserts and more) without mentioning a city, **only include the "terrainsData"** field. **Remove the "cityData"** field if terrain is the primary focus.
     - If the user requests multiple cities, set `"withSatelliteCity": true` to avoid duplicating the **"cityData"** field.
     - Make sure to *remove* "cityData" from JSON if the user wants "terrainsData".
-    - Make sure **either "terrainsData" or "cityData" is present**, but **not both at the same time**, unless the player explicitly asks for a city alongside specific terrain.
+    - Make sure to *Keep* "terrainsData" in JSON if the user wants "cityData" but make sure to set all the values to zeros.
 
     2. **Logical Terrain Placement:**
     - **Deserts:** No trees or grass should appear in the desert. Set `TreeGenerator` and `GrassGenerator` parameters to **zero**.

@@ -297,7 +297,7 @@ button {
     padding-right: 10px;
     font-size: 18px;
     text-transform: uppercase;
-    padding-top: 10px;
+    padding-top: 0px;
     padding-bottom: 10px;
     color: #080808;
     border-radius: 40px;
@@ -331,7 +331,7 @@ button {
     width: 100%;
     background-image: url(../images/header-bg.png);
     background-size: 100%;
-    padding: 10px 0px 37px 0px;
+    padding: 0px 0px 0px 0px;
 }
 
 /* header section end */
