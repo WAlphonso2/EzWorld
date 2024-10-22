@@ -1,4 +1,5 @@
-from flask import Flask, flash, redirect, render_template, request, jsonify
+import zipfile
+from flask import Flask, flash, redirect, render_template, request, jsonify, send_file, abort
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -10,6 +11,9 @@ load_dotenv()
 
 # Configure Google Generative AI with the API key
 genai.configure(api_key=os.environ.get("API_KEY"))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+APP_FOLDER = os.path.join(BASE_DIR, 'static', 'APP')
+ZIP_PATH = os.path.join(BASE_DIR, 'static', 'APP.zip')
 
 app = Flask(__name__)
 CORS(app)
@@ -47,6 +51,32 @@ def contact():
 
     return render_template('contact.html')
 
+# Download Route
+@app.route('/download')
+def download():
+    return render_template('download.html')
+
+@app.route('/download_app')
+def download_app():
+    # Create the ZIP file if it doesn't exist
+    if not os.path.exists(ZIP_PATH):
+        try:
+            with zipfile.ZipFile(ZIP_PATH, 'w') as zipf:
+                for root, _, files in os.walk(APP_FOLDER):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        # Add files to the ZIP with relative paths
+                        zipf.write(file_path, os.path.relpath(file_path, APP_FOLDER))
+        except Exception as e:
+            print(f"Error creating ZIP: {e}")
+            abort(500, description="Internal Server Error: Could not create ZIP archive.")
+
+    # Serve the ZIP file for download
+    if os.path.exists(ZIP_PATH):
+        return send_file(ZIP_PATH, as_attachment=True)
+    else:
+        abort(404, description="File not found.")
+
 
 @app.route('/parse_description', methods=['POST'])
 def parse_description():
@@ -67,11 +97,29 @@ def parse_description():
     Make sure if the user say dont add <object> make sure to set the value to zero, for exampl if the user say dont add tree or grass or water(etc) make it zero.
     Please use the following guidelines for each module:
     
-    Rules:
-    - If the user mentions a city or related attributes (e.g., traffic system, downtown, satellite city), include the "cityData" and "terrainsData" (make sure the TreeGenerator is all zero) field.
-    - If the user describes terrain features (e.g., mountains, rivers, grass fields) without a city, include only the "terrainsData" field.
-    - Ensure if "terrainsData" is present in the JSON then remove "cityData".
-    - Make sure the cityData is not duplicated. If multiple cities are requested, set "withSatelliteCity" to true.
+
+    ### Rules:
+    1. **City vs Terrain:**
+    - If the user mentions a city or related attributes (e.g., traffic system, downtown, satellite city), include both the **"cityData"** and **"terrainsData"** fields. Ensure that **TreeGenerator** parameters (like trees) are all set to **zero** for city generation.
+    - If the user only describes terrain features (e.g., mountains, rivers, deserts and more) without mentioning a city, **only include the "terrainsData"** field. **Remove the "cityData"** field if terrain is the primary focus.
+    - If the user requests multiple cities, set `"withSatelliteCity": true` to avoid duplicating the **"cityData"** field.
+    - Make sure to *remove* "cityData" from JSON if the user wants "terrainsData".
+    - Make sure **either "terrainsData" or "cityData" is present**, but **not both at the same time**, unless the player explicitly asks for a city alongside specific terrain.
+
+    2. **Logical Terrain Placement:**
+    - **Deserts:** No trees or grass should appear in the desert. Set `TreeGenerator` and `GrassGenerator` parameters to **zero**.
+    - **Snow:** Trees and grass should only appear if the player explicitly mentions it. Default these parameters to **zero** unless specified otherwise.
+    - **Mountains:** Place sparse vegetation if required, but only at lower elevations. Use logical constraints (e.g., lower density of grass and trees on slopes).
+    - **Grass Fields / Forests:** Allow denser vegetation, but ensure it aligns logically (e.g., rivers and lakes can co-exist).
+    - For terrain textures (e.g., "snow", "sand", "forestFloor"), **the most important texture should appear prominently** and be the focus.
+    - Use **"easeIn"** or **"bezier"** or **"sine"** or **"easeout"** curves to emphasize primary textures.
+    - Use **"linear"** or **"easeout"** for flat surfaces.
+    - For less important or secondary textures, apply **"constant"**, or **"linear"** curves to minimize their presence.
+    - Ensure **no two textures** use the **same curve type** for more variety.
+
+    3. **Handling Absence of Objects:**
+    - If the user says **"don't add"**(eg **"no trees"**, **"no grass"**, or **"no water"**) a specific object (e.g., water, trees, grass), set all corresponding generator parameters to **zero**.
+    - Ensure that the generated parameters logically align with the environment (e.g., snow with minimal vegetation, deserts with no water or vegetation).
 
 
     HeightsGenerator:

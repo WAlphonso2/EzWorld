@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Basic Meta Tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!-- Title -->
+    <title>Contact Us - Terrain Generator</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.mCustomScrollbar.min.css') }}">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+</head>
+
+<body>
+    <!-- Header Section -->
+    <div class="header_section">
+        <div class="header_main">
+            <div class="mobile_menu">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <div class="logo_mobile">
+                        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo"></a>
+                    </div>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('guide') }}">Guide</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('play') }}">Play</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
+                            <li class="nav-item active"><a class="nav-link" href="{{ url_for('download') }}">Download</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="container-fluid">
+                <div class="logo">
+                    <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo"></a>
+                </div>
+                <div class="menu_main">
+                    <ul>
+                        <li><a href="{{ url_for('index') }}">Home</a></li>
+                        <li><a href="{{ url_for('guide') }}">Guide</a></li>
+                        <li><a href="{{ url_for('play') }}">Play</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact us</a></li>
+                        <li class="active"><a href="{{ url_for('download') }}">Download</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Section -->
+ 
+    <div class="background_bg">
+        <div class="download_section layout_padding">
+            <div class="container">
+                <h1 class="terrain_title">Download The APP</h1>
+                <p class="download_description">
+                    After generating your customized terrain, download the complete application to run it locally on your system.
+                    Use the button below to get the package!
+                </p>
+                <a href="{{ url_for('download_app') }}" class="download_button">Download Now</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Section END-->
+
+    <!-- Footer Section -->
+    <div class="footer_section layout_padding">
+        <div class="container">
+            <h3 class="follow_text">Follow Now</h3>
+            <div class="social_icon">
+                <ul>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/fb-icon.png') }}" alt="Facebook"></a></li>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/twitter-icon.png') }}" alt="Twitter"></a></li>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/linkedin-icon.png') }}" alt="LinkedIn"></a></li>
+                    <li><a href="#"><img src="{{ url_for('static', filename='images/instagram-icon.png') }}" alt="Instagram"></a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copyright Section -->
+    <div class="copyright_section">
+        <div class="container">
+            <p class="copyright_text">© 2024 Terrain Generator. All Rights Reserved.</p>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+</body>
+
+</html>
