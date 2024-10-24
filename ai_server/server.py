@@ -161,8 +161,7 @@ def parse_description():
     to create a nice looking object from your description. Keep this list as small as possible, since generating objects
     takes a long time. If a desired object is similar to one in {object_set}, use that one instead. Furthermore,
     only generate single items at a time, not multiple individual objects together. For example, if making a dining table,
-    generate the table and chairs separately. For now, only return "gaming_setup.obj"
-    as the file_name.
+    generate the table and chairs separately. For now, only return "gaming_setup.obj" as the file_name.
     - description: The description of the object
     - file_name: The file name for the object to be stored at, as a .obj file
     - x: The x position of the center of the object, 0<x<1024
@@ -240,7 +239,7 @@ def parse_description():
             ...
         ],
         "objectList": [
-            "objectGeneratorData":{{
+            {{
                 "name": string,
                 "x": float,
                 "y": float,
@@ -248,11 +247,10 @@ def parse_description():
                 "Ry": float,
                 "Rz": float,
                 "scale": float
-            }},
-            ...
+            }}
         ],
         "generatedObjectList": [
-            "generatedObjectData:{{
+            {{
                 "description": string,
                 "file_name": string,
                 "name": string,
@@ -262,8 +260,7 @@ def parse_description():
                 "Ry": float,
                 "Rz": float,
                 "scale": float
-           }},
-            ...
+           }}
         ]
     }}
 

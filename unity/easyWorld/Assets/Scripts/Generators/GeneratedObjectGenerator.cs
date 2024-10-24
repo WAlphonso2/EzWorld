@@ -2,6 +2,8 @@ using Assets.Scripts.MapGenerator.Maps;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System;
+using Dummiesman;
 using UnityEngine;
 
 namespace Assets.Scripts.MapGenerator.Generators
@@ -13,9 +15,6 @@ namespace Assets.Scripts.MapGenerator.Generators
 
         private void Start()
         {
-            // Call Shap-E to load the model desired
-            
-
             // Initialize object list
             objectList = new List<GameObject>();
         }
@@ -24,7 +23,7 @@ namespace Assets.Scripts.MapGenerator.Generators
         {
             foreach (var objData in worldInfo.generatedObjectList)
             {
-                GenerateObject(objData, terrainIndex);
+                StartCoroutine(GenerateObject(objData, terrainIndex));
             }
 
             yield return null;
@@ -39,25 +38,38 @@ namespace Assets.Scripts.MapGenerator.Generators
             objectList.Clear();
         }
 
-        private void GenerateObject(GeneratedObjectGeneratorData data, int terrainIndex)
+        private IEnumerator GenerateObject(GeneratedObjectGeneratorData data, int terrainIndex)
         {
             if (data == null || string.IsNullOrEmpty(data.file_name))
             {
                 Debug.LogWarning("Invalid ObjectGeneratorData.");
-                return;
+                yield return null;
             }
 
             //Call shape-e here with the object description and file name
-            StartCoroutine(CreateObject(data));
+            yield return StartCoroutine(CreateObject(data));
 
-            GameObject go = Resources.Load<GameObject>(data.file_name); 
+            Debug.Log("FINISHED GENERATING OBJECT");
+            var objLoader = new OBJLoader();
+            string baseFileName = $"Assets/Resources/GeneratedObjects/{data.file_name}";
+            GameObject go = null;
+            try{
+                go = objLoader.Load(baseFileName); 
+            }catch(Exception E){
+                Debug.Log(E);
+            }
+            
+            if(go == null)
+                Debug.Log("ERROR: OBJECT IS NULL!!!");
+
+            
             go.transform.localScale = new Vector3(data.scale, data.scale, data.scale);
 
             Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, 1024, 200, 1024); 
             if (terrain == null)
             {
                 Debug.LogError($"Failed to get or create terrain at index {terrainIndex}.");
-                return;
+                yield return null;
             }
 
             float terrainHeightAtPosition = terrain.SampleHeight(new Vector3(data.x, 0, data.y));
@@ -65,7 +77,7 @@ namespace Assets.Scripts.MapGenerator.Generators
             if (terrainHeightAtPosition < waterLevel)
             {
                 Debug.LogWarning($"Skipping {data.file_name} at ({data.x}, {data.y}) because it's in water.");
-                return;
+                yield return null;
             }
 
             UpdateTerrainHeightsForObject(terrain, go, data);
@@ -75,15 +87,15 @@ namespace Assets.Scripts.MapGenerator.Generators
             objectList.Add(go);
 
             Debug.Log($"Added {data.file_name} to terrain {terrainIndex} at ({data.x}, {data.y}) with height {terrainHeightAtPosition}.");
+            
         }
 
         private IEnumerator CreateObject(GeneratedObjectGeneratorData data){
             
-            string fileName = $"GeneratedObjects/{data.file_name}";
+            string baseFileName = $"Assets/Resources/GeneratedObjects/{data.file_name}";
             Debug.Log($"Generating at {data.file_name}");
-            while(!System.IO.File.Exists(data.file_name)){
-                yield return new WaitForSeconds(4);
-            }
+            
+            yield return new WaitForSeconds(4);
 
             Debug.Log("Object Created!");
 
