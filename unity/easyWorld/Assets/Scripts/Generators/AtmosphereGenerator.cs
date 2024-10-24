@@ -34,7 +34,7 @@ public class AtmosphereGenerator : Generator
     public float fogIntensity = 0;
     public Color fogColor = Color.gray;
 
-    public override IEnumerator Generate(WorldInfo worldInfo)
+    public override IEnumerator Generate(WorldInfo worldInfo, int terrainIndex = 0)
     {
         LoadSettings(worldInfo.atmosphereGeneratorData);
 
