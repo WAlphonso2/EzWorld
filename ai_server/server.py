@@ -1,10 +1,14 @@
 import zipfile
-from flask import Flask, flash, redirect, render_template, request, jsonify, send_file, abort
+from flask import Flask, flash, jsonify, redirect, render_template, request, send_file, abort
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 import json
 from flask_cors import CORS
+from flask_mail import Mail, Message  # Correct import
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail as SendGridMail  
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -36,18 +40,37 @@ def play():
 def guide():
     return render_template('guide.html')
 
-# Contact Us Route
-@app.route('/contact')
+# Contact Us 
+@app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
-        name = request.form['name']
-        phone = request.form['phone']
-        email = request.form['email']
-        message = request.form['message']
+        try:
+            name = request.form['name']
+            phone = request.form['phone']
+            email = request.form['email']
+            message = request.form['message']
+            print(name)
+            print(phone)
+            print(email)
+            print(message)
+            # Compose the email message
+            try:
+                msg = Message(
+                    subject="New Contact Message",
+                    recipients=["ezworldcap@gmail.com"],  # Ensure this is a valid recipient
+                    body=f"Name: {name}\nPhone: {phone}\nEmail: {email}\nMessage: {message}"
+                )
+                mail.send(msg)  # Attempt to send email
+            except Exception as e:
+                print(f"Error sending email: {e}")
+                flash('Failed to send message. Please try again later.', 'danger')
+                return redirect('/contact')
 
-        # Store the data or send an email as needed
-        flash('Your message has been sent successfully!', 'success')
-        return redirect('/contact')
+
+        except Exception as e:
+            print(f"Error: {e}")
+            flash('Failed to send message. Please try again later.', 'danger')
+            return redirect('/contact')
 
     return render_template('contact.html')
 
