@@ -42,6 +42,11 @@ public class AICommunicator : MonoBehaviour
         }
     }
 
+    public void OnClearButton()
+    {
+        inputField.text = string.Empty;
+    }
+
     public IEnumerator GetAIOutput(string description)
     {
         if (!serverHandler.IsServerActive)

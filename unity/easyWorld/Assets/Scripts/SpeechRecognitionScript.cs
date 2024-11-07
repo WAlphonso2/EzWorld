@@ -5,15 +5,17 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Code from: https://huggingface.co/blog/unity-asr
-public class SpeechRecognitionTest : MonoBehaviour
+public class SpeechRecognitionScript : MonoBehaviour
 {
     [SerializeField] private Button startButton;
     [SerializeField] private Button stopButton;
-    [SerializeField] private TextMeshProUGUI text;
+    [SerializeField] private TMP_InputField inputField;
 
     private AudioClip clip;
     private byte[] bytes;
     private bool recording;
+
+    public int maxRecordingTime = 30;
 
     private void Start()
     {
@@ -32,11 +34,10 @@ public class SpeechRecognitionTest : MonoBehaviour
 
     private void StartRecording()
     {
-        text.color = Color.white;
-        text.text = "Recording...";
+        startButton.GetComponentInChildren<TMP_Text>().text = "Recording...";
         startButton.interactable = false;
         stopButton.interactable = true;
-        clip = Microphone.Start(null, false, 10, 44100);
+        clip = Microphone.Start(null, false, maxRecordingTime, 44100);
         recording = true;
     }
 
@@ -53,21 +54,19 @@ public class SpeechRecognitionTest : MonoBehaviour
 
     private void SendRecording()
     {
-        text.color = Color.yellow;
-        text.text = "Sending...";
+        startButton.GetComponentInChildren<TMP_Text>().text = "Sending...";
         stopButton.interactable = false;
         HuggingFaceAPI.AutomaticSpeechRecognition(bytes, response =>
         {
             Debug.Log("SUCCESS RESPONSE");
-            text.color = Color.white;
-            text.text = response;
+            inputField.text += response;
             startButton.interactable = true;
+            startButton.GetComponentInChildren<TMP_Text>().text = "Start";
         }, error =>
         {
             Debug.Log("FAILED RESPONSE");
-            text.color = Color.red;
-            text.text = error;
             startButton.interactable = true;
+            startButton.GetComponentInChildren<TMP_Text>().text = "Start";
         });
     }
 
