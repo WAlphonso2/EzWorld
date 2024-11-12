@@ -62,7 +62,15 @@ namespace Assets.Scripts.MapGenerator.Generators
             if(go == null)
                 Debug.Log("ERROR: OBJECT IS NULL!!!");
 
-            
+            var objrenderer = go.AddComponent<MeshRenderer>();
+
+
+            objrenderer.material = new Material(Shader.Find("Diffuse"));
+
+            var objcollider = go.AddComponent<MeshCollider>();
+
+            objcollider.sharedMesh = go.transform.GetChild(0).gameObject.GetComponent<MeshFilter>().mesh;
+    
             go.transform.localScale = new Vector3(data.scale, data.scale, data.scale);
 
             Terrain terrain = TerrainGenerator.GetTerrainByIndexOrCreate(terrainIndex, 1024, 200, 1024); 
@@ -95,7 +103,9 @@ namespace Assets.Scripts.MapGenerator.Generators
             string baseFileName = $"Assets/Resources/GeneratedObjects/{data.file_name}";
             Debug.Log($"Generating at {data.file_name}");
             
-            yield return new WaitForSeconds(4);
+            while(!System.IO.File.Exists(baseFileName)){
+                yield return new WaitForSeconds(4);
+            }
 
             Debug.Log("Object Created!");
 

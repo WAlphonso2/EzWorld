@@ -1,0 +1,9 @@
+[submodule "Shap-E"]
+	path = Shap-E
+	url = https://github.com/openai/shap-e
+[submodule "Shap_E"]
+	path = Shap_E
+	url = https://github.com/openai/shap-e
+[submodule "ai_server/Shap_E"]
+	path = ai_server/Shap_E
+	url = https://github.com/openai/shap-e
