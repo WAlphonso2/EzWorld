@@ -1,24 +1,9 @@
 using System.Collections;
 using UnityEngine;
-
-
-/*
- * Procedural Skybox Properties
- * Properties {
-    [KeywordEnum(None, Simple, High Quality)] _SunDisk ("Sun", Int) = 2
-    _SunSize ("Sun Size", Range(0,1)) = 0.04
-    _SunSizeConvergence("Sun Size Convergence", Range(1,10)) = 5
-
-    _AtmosphereThickness ("Atmosphere Thickness", Range(0,5)) = 1.0
-    _SkyTint ("Sky Tint", Color) = (.5, .5, .5, 1)
-    _GroundColor ("Ground", Color) = (.369, .349, .341, 1)
-
-    _Exposure("Exposure", Range(0, 8)) = 1.3
-}
- */
 public class AtmosphereGenerator : Generator
 {
     public Light sun;
+    public Light moon;
     public Material skyboxMaterial;
 
     [Range(0, 24)]
@@ -66,6 +51,8 @@ public class AtmosphereGenerator : Generator
     private void SetTimeOfDay(float timeOfDay)
     {
         sun.transform.rotation = Quaternion.Euler(Mathf.Lerp(-90, 270, timeOfDay / 24f), 0, 0);
+        var sunRotation = sun.transform.rotation;
+        moon.transform.rotation = new Quaternion(sunRotation.x, sunRotation.y, sunRotation.z, 0);
     }
 
     private void SetSunSize(float size)
