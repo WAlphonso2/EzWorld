@@ -156,6 +156,16 @@ def parse_description():
     - Rz: The rotation of the object around the z axis, 0<Rz<360
     - scale: The scale of the model size, as a multiple of the model, 0 < scale < 4, typically 1
 
+    AtmosphereGenerator:
+    - timeOfDay is a floating point value representing the time of day. Its value should be between 0 and 24 inclusive with 0 and 24 representing 12:00am, 12 representing 12:00pm and so on. 
+    - sunSize is a floating point value representing the size of the sun. Its value should range from 0 to 1 inclusive and the standard sun size is .05.
+    - skyTint is a color defined by RGB values each ranging from 0 to 1. Default sky color should be r=.5, g=.5, b=.5. anything refering to the color of the sky should affect this color value.
+    - atmosphericThickness is a float ranging from 0-5 inclusive. The standard value is 1.
+    - exposure is a float ranging from 0-8 inclusive. The standard value is 1.3 and this controls the overall light intensity coming from the sun in the skybox
+    - fogIntensity is a float ranging from 0-.5 inclusive. Fog values should have one of 5 different values 
+        (0 for no fog, .02 for light fog, .05 for medium fog, .1 for heavy fog, and .3 for very heavy fog)
+    - fogColor is a color defined by RGB values each ranging from 0 to 1. Default fog color should be r=.5, g=.5, b=.5
+    
     Make sure you return the result in JSON format like this:   
     {{
         "terrainsData": [
@@ -235,6 +245,23 @@ def parse_description():
         }},
         ...
     ]
+    "atmosphereGeneratorData": {{
+            "timeOfDay": float,
+            "sunSize": float,
+            "skyTint":{{
+                "r": float,
+                "g": float,
+                "b": float
+            }},
+            "atmosphericThickness": float,
+            "exposure": float,
+            "fogIntensity": float,
+            "fogColor": {{
+                "r": float,
+                "g": float,
+                "b": float
+            }}
+        }}
     }}
 
 
