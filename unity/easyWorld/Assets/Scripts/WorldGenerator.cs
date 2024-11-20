@@ -13,7 +13,6 @@ public class WorldGenerator : MonoBehaviour
 
     public CharacterSelectionManager characterSelectionManager;
     public bool VREnabled = false;
-    public CharacterSelectionManager characterSelectionManager;
     public XROrigin vrCharacter;
 
     public IEnumerator ClearCurrentWorld()
@@ -21,7 +20,7 @@ public class WorldGenerator : MonoBehaviour
         Debug.Log("Clearing current world");
         terrainDependentGenerators.ForEach(g => g?.Clear());
         terrainIndependentGenerators.ForEach(g => g?.Clear());
-        vrCharacter.gameObject.SetActive(false);
+        vrCharacter?.gameObject.SetActive(false);
         yield return null;
     }
 
