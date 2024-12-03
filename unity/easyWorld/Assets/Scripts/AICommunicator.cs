@@ -8,7 +8,8 @@ using UnityEngine.Networking;
 public class AICommunicator : MonoBehaviour
 {
     [Header("Server")]
-    public string SERVER_URL = "http://localhost:5000/parse_description";
+    public string SERVER_TEXT_URL = "http://localhost:5000/parse_description";
+    public string SERVER_IMAGE_URL = "http://localhost:5000/process_image";
     public int SERVER_TIMEOUT_SECONDS = 10;
 
     public ServerHandler serverHandler;
@@ -16,6 +17,7 @@ public class AICommunicator : MonoBehaviour
     [Header("Text")]
     public bool resetTextOnButtonClick = false;
     public TMP_InputField inputField;
+    public TMP_InputField imageNameInput;
     private JsonSerializerSettings serializerSettings = new JsonSerializerSettings()
     {
         MissingMemberHandling = MissingMemberHandling.Ignore,
@@ -28,26 +30,29 @@ public class AICommunicator : MonoBehaviour
 
     public void OnGenerateTerrainButton()
     {
+        string imageName = imageNameInput.text;
         string description = inputField.text;
 
-        if (!string.IsNullOrEmpty(description))
+        if (!string.IsNullOrEmpty(imageName))
         {
-            StartCoroutine(GetAIOutput(description));
-
-            StartCoroutine(worldGenerator.ClearCurrentWorld());
+            // handle case of image
+            StartCoroutine(ProcessImage(imageName));
+        }
+        else if (!string.IsNullOrEmpty(description))
+        {
+            // handles case of text
+            StartCoroutine(GetAITextOutput(description));
         }
         else
         {
-            Debug.Log("Invalid description");
+            Debug.Log("Invalid image / description");
+            return;
         }
+
+        StartCoroutine(worldGenerator.ClearCurrentWorld());
     }
 
-    public void OnClearButton()
-    {
-        inputField.text = string.Empty;
-    }
-
-    public IEnumerator GetAIOutput(string description)
+    public IEnumerator GetAITextOutput(string description)
     {
         if (!serverHandler.IsServerActive)
         {
@@ -58,7 +63,7 @@ public class AICommunicator : MonoBehaviour
 
         byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
 
-        using UnityWebRequest request = new UnityWebRequest(SERVER_URL, "POST")
+        using UnityWebRequest request = new UnityWebRequest(SERVER_TEXT_URL, "POST")
         {
             uploadHandler = new UploadHandlerRaw(bodyRaw),
             downloadHandler = new DownloadHandlerBuffer(),
@@ -70,6 +75,34 @@ public class AICommunicator : MonoBehaviour
         Debug.Log("Waiting for AI Response");
 
         yield return request.SendWebRequest();
+
+        HandleWebRequestResult(request);
+    }
+
+    private IEnumerator ProcessImage(string imageName)
+    {
+        if (!serverHandler.IsServerActive)
+        {
+            Debug.Log("Server is not active, request will fail unless running server externally");
+        }
+
+        string jsonData = $"{{\"image_name\": \"{imageName}\"}}";
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
+
+        using UnityWebRequest request = new UnityWebRequest(SERVER_IMAGE_URL, "POST")
+        {
+            uploadHandler = new UploadHandlerRaw(bodyRaw),
+            downloadHandler = new DownloadHandlerBuffer(),
+            timeout = SERVER_TIMEOUT_SECONDS
+        };
+
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        Debug.Log("Sending request to process image:");
+
+        yield return request.SendWebRequest();
+
+        Debug.Log("Got back a web request for image");
 
         HandleWebRequestResult(request);
     }
